@@ -12,7 +12,7 @@ services:
       - "8000:8000"
     environment:
       - REDIS_URL=redis://redis:6379/0
-      - PYTHONPATH=/app
+      - PYTHONPATH=/app/src
       - PYTHONUNBUFFERED=1
     volumes:
       - ./backend:/app

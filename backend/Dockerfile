@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 COPY . .
 
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/app/src
 ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
