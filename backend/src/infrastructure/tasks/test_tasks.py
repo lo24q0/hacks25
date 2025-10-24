@@ -9,7 +9,7 @@ from datetime import datetime
 
 from celery import Task
 
-from infrastructure.tasks.celery_app import celery_app
+from src.infrastructure.tasks.celery_app import celery_app
 
 
 @celery_app.task(bind=True, name="test_tasks.delayed_return")
