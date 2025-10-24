@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from api.v1.routers import tasks
+from api.v1.routers import models, tasks
 from infrastructure.config.settings import settings
 
 app = FastAPI(
@@ -27,6 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(models.router, prefix="/api/v1")
 app.include_router(tasks.router, prefix="/api/v1")
 
 
