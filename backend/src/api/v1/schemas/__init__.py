@@ -1,3 +1,8 @@
+from .file import (
+    FileCleanupResponse,
+    FileMetadataResponse,
+    FileUploadResponse,
+)
 from .model import (
     BoundingBoxResponse,
     DimensionsResponse,
@@ -16,4 +21,7 @@ __all__ = [
     "ModelMetadataResponse",
     "DimensionsResponse",
     "BoundingBoxResponse",
+    "FileUploadResponse",
+    "FileMetadataResponse",
+    "FileCleanupResponse",
 ]

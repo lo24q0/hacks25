@@ -1,3 +1,3 @@
-from . import models
+from . import files, models
 
-__all__ = ["models"]
+__all__ = ["models", "files"]
