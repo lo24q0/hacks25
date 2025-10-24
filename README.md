@@ -82,23 +82,32 @@ MESHY_API_KEY=your_meshy_api_key_here
 #### 使用 Docker Compose (推荐)
 
 ```bash
-# 启动 Redis 服务
+# 启动所有服务 (Redis + 前端)
 docker compose up -d
 
 # 查看服务状态
 docker compose ps
 
-# 查看日志
+# 查看所有服务日志
+docker compose logs -f
+
+# 查看特定服务日志
+docker compose logs -f frontend
 docker compose logs -f redis
 ```
 
-#### 验证 Redis 服务
+#### 验证服务
 
 ```bash
 # 测试 Redis 连接
 docker exec -it 3dprint-redis redis-cli ping
 # 应该返回: PONG
+
+# 访问前端应用
+# 打开浏览器访问: http://localhost:3000
 ```
+
+> **注意**: 首次启动前端服务会构建 Docker 镜像，可能需要几分钟时间。后续启动会使用缓存的镜像，速度会快很多。
 
 ### 4. 停止服务
 
