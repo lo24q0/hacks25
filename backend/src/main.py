@@ -8,7 +8,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from src.infrastructure.config.settings import settings
+from api.v1.routers import tasks
+from infrastructure.config.settings import settings
 
 app = FastAPI(
     title=settings.app_name,
@@ -25,6 +26,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(tasks.router, prefix="/api/v1")
 
 
 @app.get("/health")
