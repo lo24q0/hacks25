@@ -1,6 +1,54 @@
 version: '3.8'
 
 services:
+  # Backend 服务 - FastAPI 应用
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: 3dprint-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./backend:/app
+      - backend_data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - 3dprint-network
+
+  # Frontend 服务 - React SPA
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: 3dprint-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - 3dprint-network
+
   # Redis 服务 - 用作 Celery 消息队列和缓存
   redis:
     image: redis:7-alpine
@@ -25,6 +73,9 @@ volumes:
   redis_data:
     driver: local
     name: 3dprint-redis-data
+  backend_data:
+    driver: local
+    name: 3dprint-backend-data
 
 # 网络定义
 networks:
