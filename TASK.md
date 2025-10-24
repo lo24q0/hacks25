@@ -31,13 +31,19 @@
   - [ ] 模型元数据提取
 
 - [ ] **前端基础搭建** (#16, 2025-10-24)
-  - [ ] 初始化 React + Vite 项目
-  - [ ] 配置 Tailwind CSS
-  - [ ] 创建 frontend/src/ 目录结构(按 ARCH.md 5.3 节)
-  - [ ] 实现基础布局组件
-  - [ ] 创建路由配置
+  - [x] 初始化 React + Vite 项目
+  - [x] 配置 Tailwind CSS
+  - [x] 创建 frontend/src/ 目录结构(按 ARCH.md 5.3 节)
+  - [x] 实现基础布局组件
+  - [x] 创建路由配置
   - [ ] 创建 frontend/Dockerfile
-  - [ ] 集成 Three.js / React Three Fiber
+  - [x] 集成 Three.js / React Three Fiber
+
+- [ ] **前端基础组件** (#26, 2025-10-24)
+  - [ ] 实现 shared/components/ui/ 基础组件(Button, Input, Loading)
+  - [ ] 创建 features/model-generation/ 目录结构
+  - [ ] 创建 infrastructure/api/client.ts Axios 配置
+  - [ ] 配置 Zustand 状态管理
 
 - [ ] **模型预览功能**
   - [ ] 3D 模型加载和渲染
