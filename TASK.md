@@ -45,6 +45,12 @@
   - [ ] 创建 frontend/Dockerfile
   - [x] 集成 Three.js / React Three Fiber
 
+- [ ] **Three.js 集成** (#30, 2025-10-24)
+  - [ ] 实现 infrastructure/three/SceneManager.ts
+  - [ ] 实现 features/model-generation/components/ModelPreview.tsx
+  - [ ] 准备测试 STL 文件
+  - [ ] 集成 3D 预览到 GenerationPage
+
 - [ ] **前端基础组件** (#26, 2025-10-24)
   - [ ] 实现 shared/components/ui/ 基础组件(Button, Input, Loading)
   - [ ] 创建 features/model-generation/ 目录结构
