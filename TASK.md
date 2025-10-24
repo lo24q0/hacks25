@@ -18,10 +18,16 @@
   - [x] 验证所有导入和类型检查
 
 - [ ] **后端基础架构搭建**
-  - [ ] 初始化 FastAPI 项目结构
+  - [x] 初始化 FastAPI 项目结构
   - [ ] 配置开发环境 (Docker Compose)
-  - [ ] 实现基础配置管理
+  - [x] 实现基础配置管理
   - [ ] 搭建日志系统
+
+- [ ] **API 路由骨架** (#29, 2025-10-24)
+  - [x] 实现 api/v1/schemas/model.py (请求/响应模型)
+  - [x] 实现 api/v1/routers/models.py (模型生成路由 - mock数据)
+  - [x] 在 main.py 中注册路由
+  - [x] 配置 CORS 中间件
 
 - [ ] **模型生成功能**
   - [ ] 集成 Meshy.ai API
@@ -38,6 +44,12 @@
   - [x] 创建路由配置
   - [ ] 创建 frontend/Dockerfile
   - [x] 集成 Three.js / React Three Fiber
+
+- [ ] **Three.js 集成** (#30, 2025-10-24)
+  - [ ] 实现 infrastructure/three/SceneManager.ts
+  - [ ] 实现 features/model-generation/components/ModelPreview.tsx
+  - [ ] 准备测试 STL 文件
+  - [ ] 集成 3D 预览到 GenerationPage
 
 - [ ] **前端基础组件** (#26, 2025-10-24)
   - [ ] 实现 shared/components/ui/ 基础组件(Button, Input, Loading)

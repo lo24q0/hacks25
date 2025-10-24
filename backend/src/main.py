@@ -7,7 +7,6 @@ FastAPI 应用入口。
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-
 from api.v1.routers import models, tasks
 from infrastructure.config.settings import settings
 
@@ -15,8 +14,8 @@ app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
     debug=settings.debug,
-    docs_url="/docs" if settings.debug else None,
-    redoc_url="/redoc" if settings.debug else None,
+    docs_url="/docs",
+    redoc_url="/redoc",
 )
 
 app.add_middleware(
