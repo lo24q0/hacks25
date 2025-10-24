@@ -83,13 +83,13 @@ MESHY_API_KEY=your_meshy_api_key_here
 
 ```bash
 # 启动 Redis 服务
-docker-compose up -d
+docker compose up -d
 
 # 查看服务状态
-docker-compose ps
+docker compose ps
 
 # 查看日志
-docker-compose logs -f redis
+docker compose logs -f redis
 ```
 
 #### 验证 Redis 服务
@@ -104,10 +104,10 @@ docker exec -it 3dprint-redis redis-cli ping
 
 ```bash
 # 停止所有服务
-docker-compose down
+docker compose down
 
 # 停止服务并删除数据卷
-docker-compose down -v
+docker compose down -v
 ```
 
 ## 📁 项目结构
