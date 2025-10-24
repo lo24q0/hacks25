@@ -4,6 +4,12 @@
 
 ### P0 - MVP 核心功能 (2025-10-24 开始)
 
+- [ ] **基础配置与环境准备** (#12, 2025-10-24)
+  - [ ] 创建根目录结构 (frontend/, backend/, infrastructure/, scripts/)
+  - [ ] 创建 .env.example 环境变量模板
+  - [ ] 创建 docker-compose.yml 基础配置(只包含 Redis)
+  - [ ] 创建 README.md 项目说明文档
+
 - [ ] **后端基础架构搭建**
   - [ ] 初始化 FastAPI 项目结构
   - [ ] 配置开发环境 (Docker Compose)
