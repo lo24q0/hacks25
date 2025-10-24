@@ -89,7 +89,7 @@ temp/
 
 # 3D Model files (generated)
 uploads/
-models/
+/models/
 *.stl
 *.obj
 *.gcode
