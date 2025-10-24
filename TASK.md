@@ -10,6 +10,13 @@
   - [x] 创建 docker-compose.yml 基础配置(只包含 Redis)
   - [x] 创建 README.md 项目说明文档
 
+- [x] **领域模型定义** (#24, 2025-10-24)
+  - [x] 实现 domain/enums (status.py, source_type.py)
+  - [x] 实现 domain/value_objects (metadata.py, source_data.py)
+  - [x] 实现 domain/models (model3d.py)
+  - [x] 实现 domain/interfaces (i_model_generator.py, i_model_converter.py, i_style_engine.py, i_slicer.py, i_repository.py, i_storage.py)
+  - [x] 验证所有导入和类型检查
+
 - [ ] **后端基础架构搭建**
   - [ ] 初始化 FastAPI 项目结构
   - [ ] 配置开发环境 (Docker Compose)
