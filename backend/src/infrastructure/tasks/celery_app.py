@@ -7,7 +7,7 @@ Celery 应用配置模块。
 from celery import Celery
 from celery.signals import task_failure, task_success
 
-from infrastructure.config.settings import settings
+from src.infrastructure.config.settings import settings
 
 celery_app = Celery(
     "3d_print_platform",

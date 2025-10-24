@@ -10,8 +10,8 @@ from typing import Any
 from celery.result import AsyncResult
 from fastapi import APIRouter, HTTPException, Path, status
 
-from api.v1.schemas.task import TaskStatusResponse, TaskSubmitRequest, TaskSubmitResponse
-from infrastructure.tasks.celery_app import celery_app
+from src.api.v1.schemas.task import TaskStatusResponse, TaskSubmitRequest, TaskSubmitResponse
+from src.infrastructure.tasks.celery_app import celery_app
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
@@ -144,7 +144,7 @@ async def submit_delayed_test_task(
     Returns:
         TaskSubmitResponse: 任务提交响应
     """
-    from infrastructure.tasks.test_tasks import delayed_return
+    from src.infrastructure.tasks.test_tasks import delayed_return
 
     task_result = delayed_return.delay(delay_seconds, message)
 

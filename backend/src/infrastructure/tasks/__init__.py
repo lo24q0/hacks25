@@ -4,6 +4,6 @@
 Celery 任务队列配置和任务注册
 """
 
-from infrastructure.tasks.celery_app import celery_app
+from src.infrastructure.tasks.celery_app import celery_app
 
 __all__ = ["celery_app"]
