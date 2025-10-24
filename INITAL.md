@@ -229,7 +229,36 @@
 - **照片转3D**：meshy.ai API
 - **风格化**：AnimeGANv3 或 CartoonGAN
 
-### 3.4 部署架构
+### 3.4 版本兼容性要求
+
+#### 3.4.1 后端环境
+- **Python**: 3.10+ （推荐使用 Python 3.11 或 3.12）
+  - PyTorch 要求最低 Python 3.10
+  - FastAPI 支持 Python 3.8-3.14
+  - trimesh 支持 Python 3.8-3.12
+  - open3d 支持 Python 3.8-3.12
+  - Celery 支持 Python 3.8-3.13
+  - **选择 Python 3.10-3.12 可确保所有库兼容**
+
+#### 3.4.2 核心依赖版本
+- **FastAPI**: 0.115+ （支持 Python 3.8+）
+- **PyTorch**: 2.5+ （要求 Python 3.10+）
+- **trimesh**: 4.5+ （支持 Python 3.8-3.12）
+- **open3d**: 0.18+ （支持 Python 3.8-3.12）
+- **Celery**: 5.5+ （支持 Python 3.8-3.13）
+- **Redis**: 7.0+（作为 Celery broker）
+
+#### 3.4.3 前端环境
+- **Node.js**: 18+ LTS 或 20+ LTS
+- **React**: 18.3+
+- **Three.js**: r160+
+- **Tailwind CSS**: 3.4+
+
+#### 3.4.4 第三方服务
+- **meshy.ai API**: 需要注册获取 API Key
+- **CuraEngine**: 5.x（用于 G-code 生成）
+
+### 3.5 部署架构
 - **MVP阶段**：Docker Compose单机部署
 - **扩展阶段**：Kubernetes + GPU节点
 - **存储**：本地文件系统 → 对象存储（MinIO/S3）
