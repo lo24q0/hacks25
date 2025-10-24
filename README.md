@@ -82,22 +82,28 @@ MESHY_API_KEY=your_meshy_api_key_here
 #### 使用 Docker Compose (推荐)
 
 ```bash
-# 启动 Redis 服务
+# 启动所有服务(包括 Redis, Celery Worker, Flower 监控)
 docker compose up -d
 
 # 查看服务状态
 docker compose ps
 
 # 查看日志
-docker compose logs -f redis
+docker compose logs -f
 ```
 
-#### 验证 Redis 服务
+#### 验证服务
 
 ```bash
 # 测试 Redis 连接
 docker exec -it 3dprint-redis redis-cli ping
 # 应该返回: PONG
+
+# 查看 Celery Worker 日志
+docker compose logs -f celery_worker
+
+# 访问 Flower 监控界面
+# 浏览器打开: http://localhost:5555
 ```
 
 ### 4. 停止服务
@@ -178,6 +184,28 @@ pip install -r requirements.txt
 
 # 启动开发服务器
 uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### 测试异步任务
+
+启动服务后,可以通过 API 测试异步任务功能:
+
+```bash
+# 提交一个延迟 5 秒的测试任务
+curl -X POST "http://localhost:8000/api/v1/tasks/test/delayed?delay_seconds=5&message=Hello"
+
+# 返回示例:
+# {
+#   "task_id": "abc123...",
+#   "task_name": "test_tasks.delayed_return",
+#   "status": "PENDING",
+#   "submitted_at": "2025-10-24T12:00:00Z"
+# }
+
+# 查询任务状态(使用上面返回的 task_id)
+curl "http://localhost:8000/api/v1/tasks/{task_id}"
+
+# 也可以通过 Swagger UI 测试: http://localhost:8000/docs
 ```
 
 ### 代码规范

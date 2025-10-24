@@ -7,9 +7,8 @@ FastAPI 应用入口。
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-
-from src.api.v1.routers import models
-from src.infrastructure.config.settings import settings
+from api.v1.routers import models, tasks
+from infrastructure.config.settings import settings
 
 app = FastAPI(
     title=settings.app_name,
@@ -28,6 +27,7 @@ app.add_middleware(
 )
 
 app.include_router(models.router, prefix="/api/v1")
+app.include_router(tasks.router, prefix="/api/v1")
 
 
 @app.get("/health")

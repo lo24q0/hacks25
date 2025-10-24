@@ -12,7 +12,7 @@ services:
       - "8000:8000"
     environment:
       - REDIS_URL=redis://redis:6379/0
-      - PYTHONPATH=/app
+      - PYTHONPATH=/app/src
       - PYTHONUNBUFFERED=1
     volumes:
       - ./backend:/app
@@ -65,6 +65,51 @@ services:
       timeout: 3s
       retries: 3
       start_period: 10s
+    networks:
+      - 3dprint-network
+
+  # Celery Worker 服务 - 异步任务处理
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: 3dprint-celery-worker
+    restart: unless-stopped
+    command: celery -A infrastructure.tasks.celery_app worker --loglevel=info --concurrency=2
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - PYTHONPATH=/app/src
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./backend:/app
+      - backend_data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - 3dprint-network
+
+  # Flower 服务 - Celery 监控界面(可选)
+  flower:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: 3dprint-flower
+    restart: unless-stopped
+    command: celery -A infrastructure.tasks.celery_app flower --port=5555
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - PYTHONPATH=/app/src
+    ports:
+      - "5555:5555"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      redis:
+        condition: service_healthy
     networks:
       - 3dprint-network
 
