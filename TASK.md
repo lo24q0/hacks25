@@ -18,10 +18,16 @@
   - [x] 验证所有导入和类型检查
 
 - [ ] **后端基础架构搭建**
-  - [ ] 初始化 FastAPI 项目结构
+  - [x] 初始化 FastAPI 项目结构
   - [ ] 配置开发环境 (Docker Compose)
-  - [ ] 实现基础配置管理
+  - [x] 实现基础配置管理
   - [ ] 搭建日志系统
+
+- [ ] **API 路由骨架** (#29, 2025-10-24)
+  - [x] 实现 api/v1/schemas/model.py (请求/响应模型)
+  - [x] 实现 api/v1/routers/models.py (模型生成路由 - mock数据)
+  - [x] 在 main.py 中注册路由
+  - [x] 配置 CORS 中间件
 
 - [ ] **模型生成功能**
   - [ ] 集成 Meshy.ai API
