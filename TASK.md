@@ -23,10 +23,13 @@
   - [ ] 文件格式转换 (转 STL)
   - [ ] 模型元数据提取
 
-- [ ] **前端基础搭建**
+- [ ] **前端基础搭建** (#16, 2025-10-24)
   - [ ] 初始化 React + Vite 项目
   - [ ] 配置 Tailwind CSS
+  - [ ] 创建 frontend/src/ 目录结构(按 ARCH.md 5.3 节)
   - [ ] 实现基础布局组件
+  - [ ] 创建路由配置
+  - [ ] 创建 frontend/Dockerfile
   - [ ] 集成 Three.js / React Three Fiber
 
 - [ ] **模型预览功能**
