@@ -121,4 +121,4 @@ Desktop.ini
 *.joblib
 
 # Claude Code (optional, uncomment if needed)
-# .claude/
+.claude/settings.local.json
