@@ -43,5 +43,35 @@ class Settings(BaseSettings):
         default="INFO", description="日志级别"
     )
 
+    redis_host: str = Field(default="redis", description="Redis 主机地址")
+    redis_port: int = Field(default=6379, description="Redis 端口")
+    redis_password: str = Field(default="", description="Redis 密码")
+    redis_db: int = Field(default=0, description="Redis 数据库编号")
+
+    celery_broker_url: str = Field(
+        default="redis://redis:6379/0", description="Celery broker URL"
+    )
+    celery_result_backend: str = Field(
+        default="redis://redis:6379/0", description="Celery result backend URL"
+    )
+    celery_task_time_limit: int = Field(
+        default=300, description="Celery 任务超时时间(秒)"
+    )
+    celery_task_soft_time_limit: int = Field(
+        default=270, description="Celery 任务软超时时间(秒)"
+    )
+
+    @property
+    def redis_url(self) -> str:
+        """
+        构建 Redis 连接 URL。
+
+        Returns:
+            str: Redis 连接字符串
+        """
+        if self.redis_password:
+            return f"redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/{self.redis_db}"
+        return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
+
 
 settings = Settings()
