@@ -23,11 +23,18 @@
   - [x] 实现基础配置管理
   - [ ] 搭建日志系统
 
-- [ ] **API 路由骨架** (#29, 2025-10-24)
+- [x] **API 路由骨架** (#29, 2025-10-24)
   - [x] 实现 api/v1/schemas/model.py (请求/响应模型)
   - [x] 实现 api/v1/routers/models.py (模型生成路由 - mock数据)
   - [x] 在 main.py 中注册路由
   - [x] 配置 CORS 中间件
+
+- [x] **存储服务实现** (#31, 2025-10-24)
+  - [x] 实现 infrastructure/storage/base.py 存储接口
+  - [x] 实现 infrastructure/storage/local_storage.py 本地存储
+  - [x] 实现文件上传 API 路由
+  - [x] 实现临时文件清理机制
+  - [x] 验证:可以通过 API 上传文件并返回下载链接
 
 - [ ] **模型生成功能**
   - [ ] 集成 Meshy.ai API
