@@ -82,15 +82,32 @@ MESHY_API_KEY=your_meshy_api_key_here
 #### 使用 Docker Compose (推荐)
 
 ```bash
-# 启动所有服务(包括 Redis, Celery Worker, Flower 监控)
+# 启动所有服务
 docker compose up -d
+
+# 启动所有服务并启用监控(包含 Flower)
+docker compose --profile monitoring up -d
 
 # 查看服务状态
 docker compose ps
 
-# 查看日志
+# 查看所有服务日志
 docker compose logs -f
+
+# 查看特定服务日志
+docker compose logs -f backend
+docker compose logs -f celery_worker
 ```
+
+#### 服务访问地址
+
+启动成功后，可以通过以下地址访问各个服务：
+
+- **前端应用**: http://localhost (或 http://localhost:80)
+- **后端 API**: http://localhost:8000
+- **API 文档**: http://localhost/docs 或 http://localhost:8000/docs
+- **健康检查**: http://localhost/health
+- **Flower 监控**: http://localhost:5555 (需启用 monitoring profile)
 
 #### 验证服务
 
@@ -99,10 +116,20 @@ docker compose logs -f
 docker exec -it 3dprint-redis redis-cli ping
 # 应该返回: PONG
 
-# 查看 Celery Worker 日志
-docker compose logs -f celery_worker
+# 测试后端健康检查
+curl http://localhost:8000/health
 
-# 访问 Flower 监控界面
+# 测试前端健康检查
+curl http://localhost/health
+
+# 测试前端能否访问后端 API
+curl http://localhost/api/v1/models
+# 应该返回模型列表(当前为 mock 数据)
+
+# 查看 Celery Worker 状态
+docker exec -it 3dprint-celery-worker celery -A infrastructure.tasks.celery_app inspect active
+
+# 访问 Flower 监控界面(如果启用了 monitoring profile)
 # 浏览器打开: http://localhost:5555
 ```
 
@@ -114,7 +141,45 @@ docker compose down
 
 # 停止服务并删除数据卷
 docker compose down -v
+
+# 重启特定服务
+docker compose restart backend
+docker compose restart frontend
 ```
+
+### 5. Docker Compose 架构说明
+
+本项目使用 Docker Compose 编排以下服务：
+
+| 服务名 | 说明 | 端口 | 依赖 |
+|--------|------|------|------|
+| **frontend** | React SPA + Nginx 反向代理 | 80 | backend |
+| **backend** | FastAPI 应用服务 | 8000 | redis |
+| **redis** | Redis 消息队列和缓存 | 6379 | - |
+| **celery_worker** | Celery 异步任务处理器 | - | redis, backend |
+| **flower** | Celery 监控界面(可选) | 5555 | redis, celery_worker |
+
+#### 服务特性
+
+- ✅ **健康检查**: 所有服务配置了健康检查，确保服务正常启动
+- ✅ **依赖管理**: 服务按正确顺序启动（Redis → Backend → Celery Worker → Frontend）
+- ✅ **网络隔离**: 所有服务在 `3dprint-network` 内部网络中通信
+- ✅ **数据持久化**: Redis 数据和后端文件存储在 Docker volumes 中
+- ✅ **日志管理**: 配置了日志轮转，防止日志文件过大
+- ✅ **环境变量**: 通过 `.env` 文件统一管理配置
+- ✅ **反向代理**: Nginx 作为前端服务器，同时代理后端 API 请求
+
+#### Nginx 反向代理配置
+
+前端 Nginx 配置了以下路由：
+
+- `/` - React 单页应用
+- `/api` - 代理到后端 API (http://backend:8000)
+- `/docs` - API 文档 (Swagger UI)
+- `/redoc` - API 文档 (ReDoc)
+- `/health` - 前端健康检查端点
+
+所有 API 请求都通过 Nginx 转发到后端服务，前端和后端通过内部 Docker 网络通信。
 
 ## 📁 项目结构
 

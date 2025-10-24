@@ -10,6 +10,15 @@
   - [x] 创建 docker-compose.yml 基础配置(只包含 Redis)
   - [x] 创建 README.md 项目说明文档
 
+- [x] **完整 Docker Compose 集成** (#34, 2025-10-24)
+  - [x] 更新 docker-compose.yml 包含所有服务
+  - [x] 添加 Nginx 反向代理配置
+  - [x] 配置服务间网络
+  - [x] 添加健康检查
+  - [x] 配置环境变量支持
+  - [x] 添加日志管理配置
+  - [x] 更新 README 文档说明
+
 - [x] **领域模型定义** (#24, 2025-10-24)
   - [x] 实现 domain/enums (status.py, source_type.py)
   - [x] 实现 domain/value_objects (metadata.py, source_data.py)
