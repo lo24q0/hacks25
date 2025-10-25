@@ -97,6 +97,9 @@ class Settings(BaseSettings):
     meshy_default_model: str = Field(
         default="meshy-5", description="Meshy AI 默认模型版本"
     )
+    meshy_mock_mode: bool = Field(
+        default=False, description="是否启用 Meshy AI Mock 模式(用于测试)"
+    )
 
     @property
     def redis_url(self) -> str:
