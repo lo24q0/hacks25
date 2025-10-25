@@ -1,10 +1,11 @@
 """
-Meshy AI 集成模块。
+AI 服务集成模块。
 
-提供 Meshy AI API 客户端、数据模型及3D模型生成服务。
+提供 Meshy AI API 客户端、腾讯云风格化服务及3D模型生成服务。
 """
 
 from infrastructure.ai.image_to_3d_service import ImageTo3DService
+from infrastructure.ai.tencent_style import TencentCloudStyleEngine
 from infrastructure.ai.meshy_client import (
     MeshyAPIError,
     MeshyAuthenticationError,
@@ -45,6 +46,7 @@ __all__ = [
     "TextTo3DService",
     "ImageTo3DService",
     "MeshyModelGenerator",
+    "TencentCloudStyleEngine",
     # Models - Request
     "TextTo3DPreviewRequest",
     "TextTo3DRefineRequest",
