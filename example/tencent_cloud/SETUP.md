@@ -117,7 +117,7 @@ TENCENT_CLOUD_REGION=ap-guangzhou
 
 ```bash
 TENCENT_CLOUD_SECRET_ID=your_secret_id_from_step3_here
-TENCENT_CLOUD_SECRET_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TENCENT_CLOUD_SECRET_KEY=your_secret_key_from_step3_here
 TENCENT_CLOUD_REGION=ap-guangzhou
 ```
 

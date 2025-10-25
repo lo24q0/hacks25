@@ -20,7 +20,7 @@ cp .env.example .env
 ```bash
 # 腾讯云 API 配置 (图片风格化)
 TENCENT_CLOUD_SECRET_ID=your_tencent_cloud_secret_id_here  # 替换为你的 SecretId
-TENCENT_CLOUD_SECRET_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx    # 替换为你的 SecretKey
+TENCENT_CLOUD_SECRET_KEY=your_tencent_cloud_secret_key_here    # 替换为你的 SecretKey
 TENCENT_CLOUD_REGION=ap-guangzhou                           # 地域选择（广州/北京/上海）
 ```
 
