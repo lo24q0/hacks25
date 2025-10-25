@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, TextArea, Toast, Tag, Space, Tooltip } from '@douyinfe/semi-ui';
-import { IconMagic, IconBulb } from '@douyinfe/semi-icons';
+import { IconStar, IconBulb } from '@douyinfe/semi-icons';
 
 interface TextInputProps {
   onGenerate: (text: string) => void
@@ -108,7 +108,7 @@ const TextInput: React.FC<TextInputProps> = ({ onGenerate, loading = false }) =>
         block
         disabled={!isValid || loading}
         loading={loading}
-        icon={<IconMagic />}
+        icon={<IconStar />}
         theme="solid"
         className="transition-all duration-200 hover:shadow-lg"
         style={{ 
