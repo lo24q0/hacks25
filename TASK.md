@@ -86,6 +86,14 @@
   - [ ] 实现模型生成异步任务
   - [ ] 前端轮询机制
 
+- [x] **开发工具配置** (#39, 2025-10-24)
+  - [x] 配置 Python Black, Flake8, MyPy
+  - [x] 配置 ESLint, Prettier
+  - [x] 添加 pre-commit hooks
+  - [x] 创建测试目录结构
+  - [x] 添加 vitest 配置
+  - [x] 更新 package.json 和 requirements.txt
+
 ### P1 - 增强功能
 
 - [ ] **打印适配功能**
