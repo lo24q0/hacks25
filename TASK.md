@@ -141,10 +141,11 @@
   - [ ] 用户历史记录
   - [ ] 用户配额管理
 
-- [ ] **数据持久化**
-  - [ ] PostgreSQL 集成
-  - [ ] SQLAlchemy 模型定义
-  - [ ] 数据库迁移工具
+- [x] **数据持久化** (#74, 2025-10-25)
+  - [x] PostgreSQL/SQLite 集成
+  - [x] SQLAlchemy 模型定义(PrintTask, Printer, Model3D)
+  - [x] Repository模式实现
+  - [x] 数据库迁移脚本
 
 ### P2 - 高级功能
 
@@ -159,6 +160,13 @@
 
 ## 已完成任务
 
+- [x] 2025-10-25: 打印模块核心功能实现 (#74)
+  - 实现G-code到3MF文件格式转换工具
+  - 实现数据库持久化层(SQLAlchemy + Repository模式)
+  - 创建PrintTask, Printer, Model3D数据库模型
+  - 实现PrintTaskRepository和PrinterRepository
+  - 添加数据库初始化脚本
+  - 编写单元测试
 - [x] 2025-10-25: 图片风格化模块设计文档补充
   - 创建腾讯云图像风格化 API 示例代码 (example/tencent_cloud/)
   - 创建风格预设映射配置文件 (style_presets_mapping.json)

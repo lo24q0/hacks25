@@ -81,9 +81,20 @@ MESHY_API_KEY=your_meshy_api_key_here
 
 #### 使用 Docker Compose (推荐)
 
+**⚠️ 重要提示**：首次启动或在拉取新代码后,建议使用以下命令确保依赖正确安装:
+
 ```bash
-# 启动所有服务
-docker compose up -d
+# 方法一: 使用 Makefile (最推荐)
+make up              # 启动所有服务
+make rebuild         # 如遇依赖问题,强制重新构建
+
+# 方法二: 使用 Docker Compose
+# 首次启动或拉取新代码后
+docker compose build --no-cache  # 强制重新构建,避免缓存问题
+docker compose up -d              # 启动所有服务
+
+# 日常使用
+docker compose up -d              # 直接启动服务
 
 # 启动所有服务并启用监控(包含 Flower)
 docker compose --profile monitoring up -d
@@ -99,15 +110,44 @@ docker compose logs -f backend
 docker compose logs -f celery_worker
 ```
 
+#### Makefile 快捷命令
+
+项目提供了 Makefile 来简化 Docker 操作:
+
+```bash
+make help            # 查看所有可用命令
+make build           # 构建所有镜像
+make rebuild         # 强制重新构建(解决依赖缓存问题)
+make up              # 启动所有服务
+make down            # 停止所有服务
+make restart         # 重启所有服务
+make status          # 查看服务状态
+make logs            # 查看所有日志
+make logs-backend    # 查看后端日志
+make logs-celery     # 查看 Celery 日志
+make clean           # 清理所有容器和卷
+make shell-backend   # 进入后端容器 shell
+```
+
 #### 服务访问地址
 
 启动成功后，可以通过以下地址访问各个服务：
 
-- **前端应用**: http://localhost (或 http://localhost:80)
+**开发环境** (默认配置，`FRONTEND_PORT=5173`):
+- **前端应用**: http://localhost:5173
 - **后端 API**: http://localhost:8000
-- **API 文档**: http://localhost/docs 或 http://localhost:8000/docs
+- **API 文档**: http://localhost:5173/docs (通过 Nginx 代理) 或 http://localhost:8000/docs (直接访问)
+- **健康检查**: http://localhost:5173/health
+- **Flower 监控**: http://localhost:5555 (需启用 monitoring profile)
+
+**生产环境** (需在 `.env` 中设置 `FRONTEND_PORT=80`):
+- **前端应用**: http://localhost
+- **后端 API**: http://localhost:8000
+- **API 文档**: http://localhost/docs (通过 Nginx 代理) 或 http://localhost:8000/docs (直接访问)
 - **健康检查**: http://localhost/health
 - **Flower 监控**: http://localhost:5555 (需启用 monitoring profile)
+
+> **注意**: 使用 80 端口在 Mac/Linux 系统上可能需要管理员权限，且可能与本地其他服务冲突。开发环境推荐使用 5173 端口。
 
 #### 验证服务
 
@@ -119,11 +159,11 @@ docker exec -it 3dprint-redis redis-cli ping
 # 测试后端健康检查
 curl http://localhost:8000/health
 
-# 测试前端健康检查
-curl http://localhost/health
+# 测试前端健康检查 (开发环境)
+curl http://localhost:5173/health
 
-# 测试前端能否访问后端 API
-curl http://localhost/api/v1/models
+# 测试前端代理到后端 (开发环境)
+curl http://localhost:5173/api/v1/models
 # 应该返回模型列表(当前为 mock 数据)
 
 # 查看 Celery Worker 状态
@@ -216,6 +256,154 @@ hacks25/
 ├── .env.example          # 环境变量模板
 ├── docker-compose.yml    # Docker Compose 配置
 └── README.md            # 项目说明文档
+```
+
+## ❓ 常见问题 (FAQ)
+
+### Docker 相关问题
+
+#### Q1: 启动时出现 `ModuleNotFoundError` 或依赖缺失错误
+
+**问题描述**: Backend 服务启动失败,提示找不到某个 Python 模块,例如 `ModuleNotFoundError: No module named 'httpx'`。
+
+**原因**: Docker 镜像缓存导致依赖未正确安装。当 `requirements.txt` 更新后,如果 Docker 使用了旧的缓存层,新的依赖不会被安装。
+
+**解决方案**:
+
+```bash
+# 方法一: 使用 Makefile (推荐)
+make rebuild    # 强制重新构建所有镜像(无缓存)
+make up         # 启动服务
+
+# 方法二: 使用 Docker Compose
+docker compose down                      # 停止所有服务
+docker compose build --no-cache backend  # 重新构建 backend 镜像
+docker compose up -d                     # 启动服务
+
+# 方法三: 清理所有内容后重新启动
+docker compose down -v    # 停止并删除卷
+docker system prune -a    # 清理 Docker 缓存(可选,会删除所有未使用的镜像)
+make rebuild              # 重新构建
+make up                   # 启动服务
+```
+
+**预防措施**:
+- 拉取新代码后,优先使用 `make rebuild` 或 `docker compose build --no-cache`
+- 项目已优化 Dockerfile,将依赖安装和代码复制分层,减少缓存问题
+
+#### Q2: 服务启动后健康检查失败
+
+**问题描述**: `docker compose ps` 显示服务状态为 `unhealthy` 或不断重启。
+
+**解决方案**:
+
+```bash
+# 1. 查看服务日志,找出具体错误
+docker compose logs backend
+docker compose logs celery_worker
+
+# 2. 检查服务依赖是否正常
+docker compose ps  # 确认 Redis 是否健康
+
+# 3. 重启特定服务
+docker compose restart backend
+
+# 4. 如果问题持续,重新构建
+make rebuild
+```
+
+#### Q3: 端口冲突错误
+
+**问题描述**: 启动时提示端口已被占用,例如 `Error: bind: address already in use`。
+
+**解决方案**:
+
+```bash
+# 查看端口占用情况
+lsof -i :8000  # Backend 端口
+lsof -i :80    # Frontend 端口
+lsof -i :6379  # Redis 端口
+
+# 在 .env 文件中修改端口配置
+API_PORT=8001
+FRONTEND_PORT=8080
+REDIS_PORT=6380
+
+# 或者停止占用端口的进程
+kill -9 <PID>
+```
+
+#### Q4: 拉取新代码后前端页面显示异常
+
+**问题描述**: 前端页面无法加载或显示错误。
+
+**解决方案**:
+
+```bash
+# 重新构建前端镜像
+docker compose build --no-cache frontend
+docker compose up -d frontend
+
+# 清理浏览器缓存
+# Chrome: Ctrl+Shift+Delete (或 Cmd+Shift+Delete)
+# 选择 "缓存的图片和文件" 并清除
+```
+
+### API 相关问题
+
+#### Q5: API 返回 CORS 错误
+
+**问题描述**: 前端调用 API 时浏览器控制台显示 CORS 错误。
+
+**解决方案**: 检查 `.env` 文件中的 `CORS_ORIGINS` 配置,确保包含前端地址:
+
+```bash
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost
+```
+
+#### Q6: Meshy.ai API 调用失败
+
+**问题描述**: 生成 3D 模型时返回 401 或 403 错误。
+
+**解决方案**:
+1. 检查 `.env` 文件中的 `MESHY_API_KEY` 是否正确
+2. 访问 [Meshy.ai Dashboard](https://www.meshy.ai/) 确认 API Key 有效
+3. 检查账户配额是否用完
+
+### 开发环境问题
+
+#### Q7: 如何查看 Celery 任务执行情况?
+
+**解决方案**:
+
+```bash
+# 方法一: 使用 Flower 监控界面
+docker compose --profile monitoring up -d
+# 访问: http://localhost:5555
+
+# 方法二: 命令行查看
+docker exec -it 3dprint-celery-worker celery -A infrastructure.tasks.celery_app inspect active
+docker exec -it 3dprint-celery-worker celery -A infrastructure.tasks.celery_app inspect stats
+
+# 方法三: 查看日志
+make logs-celery
+```
+
+#### Q8: 如何进入容器内部调试?
+
+**解决方案**:
+
+```bash
+# 进入 Backend 容器
+make shell-backend
+# 或
+docker compose exec backend /bin/bash
+
+# 进入 Frontend 容器
+docker compose exec frontend /bin/sh
+
+# 进入 Redis 容器
+docker compose exec redis redis-cli
 ```
 
 ## 🔧 开发指南

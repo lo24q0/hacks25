@@ -8,8 +8,8 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID, uuid4
 
-from domain.enums.status import TaskStatus
-from domain.value_objects.style_metadata import ErrorInfo, StyleTaskMetadata
+from src.domain.enums.status import TaskStatus
+from src.domain.value_objects.style_metadata import ErrorInfo, StyleTaskMetadata
 
 
 class StyleTask:

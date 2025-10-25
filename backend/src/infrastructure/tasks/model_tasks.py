@@ -13,11 +13,11 @@ from typing import Optional
 import httpx
 from celery import Task
 
-from infrastructure.ai.meshy_client import MeshyAPIError, MeshyClient
-from infrastructure.ai.meshy_models import GenerationConfig, MeshyTaskResponse
-from infrastructure.ai.text_to_3d_service import TextTo3DService
-from infrastructure.ai.image_to_3d_service import ImageTo3DService
-from infrastructure.config.settings import settings
+from src.infrastructure.ai.meshy_client import MeshyAPIError, MeshyClient
+from src.infrastructure.ai.meshy_models import GenerationConfig, MeshyTaskResponse
+from src.infrastructure.ai.text_to_3d_service import TextTo3DService
+from src.infrastructure.ai.image_to_3d_service import ImageTo3DService
+from src.infrastructure.config.settings import settings
 from src.infrastructure.tasks.celery_app import celery_app
 
 logger = logging.getLogger(__name__)

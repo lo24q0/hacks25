@@ -1,0 +1,344 @@
+{
+    "id": "bambu_h2d",
+    "version": 2,
+    "name": "Bambu Lab H2D",
+    "inherits": "fdmprinter",
+    "metadata": {
+        "visible": true,
+        "author": "Custom Configuration",
+        "manufacturer": "Bambu Lab",
+        "file_formats": "text/x-gcode",
+        "platform": "bambu_h2d_platform.stl",
+        "platform_offset": [0, 0, 0],
+        "has_machine_quality": true,
+        "has_materials": true,
+        "has_variants": false,
+        "preferred_quality_type": "standard",
+        "preferred_material": "generic_pla"
+    },
+    "overrides": {
+        "machine_name": {
+            "default_value": "Bambu H2D"
+        },
+        "machine_width": {
+            "default_value": 256
+        },
+        "machine_depth": {
+            "default_value": 256
+        },
+        "machine_height": {
+            "default_value": 256
+        },
+        "machine_heated_bed": {
+            "default_value": true
+        },
+        "machine_heated_build_volume": {
+            "default_value": false
+        },
+        "machine_center_is_zero": {
+            "default_value": false
+        },
+        "machine_gcode_flavor": {
+            "default_value": "Marlin"
+        },
+        "machine_max_feedrate_x": {
+            "default_value": 500
+        },
+        "machine_max_feedrate_y": {
+            "default_value": 500
+        },
+        "machine_max_feedrate_z": {
+            "default_value": 20
+        },
+        "machine_max_feedrate_e": {
+            "default_value": 45
+        },
+        "machine_max_acceleration_x": {
+            "default_value": 10000
+        },
+        "machine_max_acceleration_y": {
+            "default_value": 10000
+        },
+        "machine_max_acceleration_z": {
+            "default_value": 500
+        },
+        "machine_max_acceleration_e": {
+            "default_value": 5000
+        },
+        "machine_acceleration": {
+            "default_value": 3000
+        },
+        "machine_max_jerk_xy": {
+            "default_value": 20
+        },
+        "machine_max_jerk_z": {
+            "default_value": 0.4
+        },
+        "machine_max_jerk_e": {
+            "default_value": 5
+        },
+        "machine_nozzle_size": {
+            "default_value": 0.4
+        },
+        "material_diameter": {
+            "default_value": 1.75
+        },
+        "machine_nozzle_temp_enabled": {
+            "default_value": true
+        },
+        "machine_nozzle_heat_up_speed": {
+            "default_value": 2.0
+        },
+        "machine_nozzle_cool_down_speed": {
+            "default_value": 2.0
+        },
+        "machine_min_cool_heat_time_window": {
+            "default_value": 50.0
+        },
+        "machine_head_with_fans_polygon": {
+            "default_value": [
+                [-26, 34],
+                [-26, -32],
+                [32, -32],
+                [32, 34]
+            ]
+        },
+        "gantry_height": {
+            "default_value": 30
+        },
+        "machine_use_extruder_offset_to_offset_coords": {
+            "default_value": true
+        },
+        "machine_buildplate_type": {
+            "default_value": "glass"
+        },
+        "machine_start_gcode": {
+            "default_value": "; Bambu H2D Start G-code\\nG28 ; Home all axes\\nG1 Z15.0 F6000 ; Move Z axis up\\nM140 S{material_bed_temperature_layer_0} ; Set bed temp\\nM190 S{material_bed_temperature_layer_0} ; Wait for bed temp\\nM104 S{material_print_temperature_layer_0} ; Set nozzle temp\\nM109 S{material_print_temperature_layer_0} ; Wait for nozzle temp\\nG92 E0 ; Reset extruder\\nG1 F200 E3 ; Extrude a bit\\nG92 E0 ; Reset extruder\\nG1 F2400 E-0.5 ; Retract a bit\\nG1 Z2.0 F3000 ; Move Z up\\nG1 X5 Y20 Z0.3 F5000.0 ; Move to start position\\nG1 X5 Y200.0 Z0.3 F1500.0 E15 ; Draw priming line\\nG1 X5.3 Y200.0 Z0.3 F5000.0 ; Move slightly\\nG1 X5.3 Y20 Z0.3 F1500.0 E30 ; Draw second line\\nG92 E0 ; Reset extruder\\nG1 Z2.0 F3000 ; Move Z up"
+        },
+        "machine_end_gcode": {
+            "default_value": "; Bambu H2D End G-code\\nG91 ; Relative positioning\\nG1 E-2 F2700 ; Retract\\nG1 E-2 Z0.2 F2400 ; Retract and lift Z\\nG1 X5 Y5 F3000 ; Wipe out\\nG1 Z10 ; Lift Z more\\nG90 ; Absolute positioning\\nG1 X0 Y{machine_depth} ; Present print\\nM106 S0 ; Turn off fan\\nM104 S0 ; Turn off nozzle\\nM140 S0 ; Turn off bed\\nM84 X Y E ; Disable motors"
+        },
+        "layer_height": {
+            "default_value": 0.2
+        },
+        "layer_height_0": {
+            "default_value": 0.2
+        },
+        "line_width": {
+            "default_value": 0.4
+        },
+        "wall_thickness": {
+            "default_value": 1.2
+        },
+        "wall_line_count": {
+            "default_value": 3
+        },
+        "top_thickness": {
+            "default_value": 0.8
+        },
+        "top_layers": {
+            "default_value": 4
+        },
+        "bottom_thickness": {
+            "default_value": 0.8
+        },
+        "bottom_layers": {
+            "default_value": 4
+        },
+        "infill_sparse_density": {
+            "default_value": 20
+        },
+        "infill_pattern": {
+            "default_value": "grid"
+        },
+        "material_print_temperature": {
+            "default_value": 210
+        },
+        "material_print_temperature_layer_0": {
+            "default_value": 215
+        },
+        "material_bed_temperature": {
+            "default_value": 60
+        },
+        "material_bed_temperature_layer_0": {
+            "default_value": 60
+        },
+        "speed_print": {
+            "default_value": 50
+        },
+        "speed_infill": {
+            "default_value": 60
+        },
+        "speed_wall": {
+            "default_value": 40
+        },
+        "speed_wall_0": {
+            "default_value": 30
+        },
+        "speed_topbottom": {
+            "default_value": 40
+        },
+        "speed_travel": {
+            "default_value": 150
+        },
+        "speed_layer_0": {
+            "default_value": 20
+        },
+        "speed_print_layer_0": {
+            "default_value": 20
+        },
+        "speed_travel_layer_0": {
+            "default_value": 100
+        },
+        "skirt_brim_speed": {
+            "default_value": 20
+        },
+        "acceleration_enabled": {
+            "default_value": true
+        },
+        "acceleration_print": {
+            "default_value": 3000
+        },
+        "acceleration_travel": {
+            "default_value": 3000
+        },
+        "acceleration_layer_0": {
+            "default_value": 1000
+        },
+        "jerk_enabled": {
+            "default_value": true
+        },
+        "jerk_print": {
+            "default_value": 8
+        },
+        "jerk_travel": {
+            "default_value": 8
+        },
+        "jerk_layer_0": {
+            "default_value": 8
+        },
+        "retraction_enable": {
+            "default_value": true
+        },
+        "retraction_amount": {
+            "default_value": 0.8
+        },
+        "retraction_speed": {
+            "default_value": 40
+        },
+        "retraction_retract_speed": {
+            "default_value": 40
+        },
+        "retraction_prime_speed": {
+            "default_value": 40
+        },
+        "retraction_min_travel": {
+            "default_value": 1.5
+        },
+        "retraction_count_max": {
+            "default_value": 100
+        },
+        "retraction_extrusion_window": {
+            "default_value": 10
+        },
+        "retraction_hop_enabled": {
+            "default_value": false
+        },
+        "retraction_hop": {
+            "default_value": 0.2
+        },
+        "cool_fan_enabled": {
+            "default_value": true
+        },
+        "cool_fan_speed": {
+            "default_value": 100
+        },
+        "cool_fan_speed_0": {
+            "default_value": 0
+        },
+        "cool_fan_speed_min": {
+            "default_value": 100
+        },
+        "cool_fan_speed_max": {
+            "default_value": 100
+        },
+        "cool_min_layer_time": {
+            "default_value": 10
+        },
+        "cool_min_layer_time_fan_speed_max": {
+            "default_value": 10
+        },
+        "cool_fan_full_at_height": {
+            "default_value": 0.6
+        },
+        "cool_fan_full_layer": {
+            "default_value": 3
+        },
+        "cool_min_speed": {
+            "default_value": 10
+        },
+        "adhesion_type": {
+            "default_value": "brim"
+        },
+        "skirt_line_count": {
+            "default_value": 2
+        },
+        "skirt_gap": {
+            "default_value": 3
+        },
+        "brim_line_count": {
+            "default_value": 8
+        },
+        "brim_width": {
+            "default_value": 3.2
+        },
+        "raft_margin": {
+            "default_value": 5
+        },
+        "raft_airgap": {
+            "default_value": 0.3
+        },
+        "support_enable": {
+            "default_value": false
+        },
+        "support_type": {
+            "default_value": "buildplate"
+        },
+        "support_angle": {
+            "default_value": 50
+        },
+        "support_pattern": {
+            "default_value": "grid"
+        },
+        "support_infill_rate": {
+            "default_value": 20
+        },
+        "support_z_distance": {
+            "default_value": 0.2
+        },
+        "support_xy_distance": {
+            "default_value": 0.7
+        },
+        "support_xy_distance_overhang": {
+            "default_value": 0.4
+        },
+        "support_roof_enable": {
+            "default_value": true
+        },
+        "support_roof_density": {
+            "default_value": 33
+        },
+        "support_bottom_enable": {
+            "default_value": true
+        },
+        "support_bottom_density": {
+            "default_value": 33
+        },
+        "meshfix_maximum_resolution": {
+            "default_value": 0.25
+        },
+        "meshfix_maximum_travel_resolution": {
+            "default_value": 0.25
+        }
+    }
+}

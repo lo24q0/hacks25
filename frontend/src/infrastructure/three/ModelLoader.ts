@@ -114,7 +114,6 @@ export class ModelLoader {
     })
   }
 
-<<<<<<< HEAD
   public async loadOBJ(
     url: string,
     mtlUrl?: string,

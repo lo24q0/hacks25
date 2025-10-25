@@ -9,13 +9,13 @@ from pathlib import Path
 from typing import Dict, List, Optional
 from uuid import UUID
 
-from domain.enums.status import TaskStatus
-from domain.interfaces.i_style_engine import StylePreset
-from domain.models.style import StyleTask
-from domain.value_objects.style_metadata import ErrorInfo
-from infrastructure.ai.tencent_style import TencentCloudStyleEngine
-from infrastructure.config.settings import settings
-from infrastructure.tasks.style_tasks import process_style_transfer
+from src.domain.enums.status import TaskStatus
+from src.domain.interfaces.i_style_engine import StylePreset
+from src.domain.models.style import StyleTask
+from src.domain.value_objects.style_metadata import ErrorInfo
+from src.infrastructure.ai.tencent_style import TencentCloudStyleEngine
+from src.infrastructure.config.settings import settings
+from src.infrastructure.tasks.style_tasks import process_style_transfer
 
 
 class StyleService:

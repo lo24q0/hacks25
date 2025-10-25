@@ -3,10 +3,15 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# 复制 package.json 和 package-lock.json
 COPY package*.json ./
+
 RUN npm install
 
+# 复制源代码
 COPY . .
+
+# 构建生产版本
 RUN npm run build
 
 # Production stage

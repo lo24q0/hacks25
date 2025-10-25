@@ -16,9 +16,9 @@ from tencentcloud.common.profile.client_profile import ClientProfile
 from tencentcloud.common.profile.http_profile import HttpProfile
 from tencentcloud.aiart.v20221229 import aiart_client, models
 
-from domain.interfaces.i_style_engine import IStyleEngine, StylePreset
-from shared.exceptions.tencent_cloud_exceptions import TencentCloudAPIError
-from shared.config.tencent_cloud_error_mapping import TencentCloudErrorMapping
+from src.domain.interfaces.i_style_engine import IStyleEngine, StylePreset
+from src.shared.exceptions.tencent_cloud_exceptions import TencentCloudAPIError
+from src.shared.config.tencent_cloud_error_mapping import TencentCloudErrorMapping
 
 
 class TencentCloudStyleEngine(IStyleEngine):

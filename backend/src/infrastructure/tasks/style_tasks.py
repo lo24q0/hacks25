@@ -11,9 +11,9 @@ from typing import Dict, Any
 from celery import shared_task
 from celery.exceptions import Retry
 
-from infrastructure.ai.tencent_style import TencentCloudStyleEngine
-from infrastructure.config.settings import settings
-from shared.exceptions.tencent_cloud_exceptions import TencentCloudAPIError
+from src.infrastructure.ai.tencent_style import TencentCloudStyleEngine
+from src.infrastructure.config.settings import settings
+from src.shared.exceptions.tencent_cloud_exceptions import TencentCloudAPIError
 
 
 @shared_task(
