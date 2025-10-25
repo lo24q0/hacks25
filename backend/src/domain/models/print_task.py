@@ -3,15 +3,15 @@ from datetime import datetime, timedelta
 from typing import Optional
 from pydantic import BaseModel, Field
 
-from domain.enums.print_enums import TaskStatus
-from domain.value_objects.slicing_config import SlicingConfig
-from shared.exceptions.domain_exceptions import InvalidStateError
+from src.domain.enums.print_enums import TaskStatus
+from src.domain.value_objects.slicing_config import SlicingConfig
+from src.shared.exceptions.domain_exceptions import InvalidStateError
 
 
 class PrintTask(BaseModel):
     """
     打印任务聚合根
-    
+
     Attributes:
         id: 任务唯一标识
         model_id: 关联的3D模型ID
@@ -29,6 +29,7 @@ class PrintTask(BaseModel):
         created_at: 创建时间
         updated_at: 更新时间
     """
+
     id: UUID = Field(default_factory=uuid4)
     model_id: UUID = Field(...)
     printer_id: str = Field(...)
@@ -51,21 +52,19 @@ class PrintTask(BaseModel):
     def start_slicing(self) -> None:
         """
         开始切片处理
-        
+
         Raises:
             InvalidStateError: 如果任务状态不允许切片
         """
         if self.status != TaskStatus.PENDING:
-            raise InvalidStateError(
-                f"Cannot start slicing: task status is {self.status}"
-            )
+            raise InvalidStateError(f"Cannot start slicing: task status is {self.status}")
         self.status = TaskStatus.SLICING
         self.updated_at = datetime.utcnow()
 
     def enqueue(self, position: int) -> None:
         """
         加入打印队列
-        
+
         Args:
             position: 队列位置
         """
@@ -76,14 +75,12 @@ class PrintTask(BaseModel):
     def start_printing(self) -> None:
         """
         开始打印
-        
+
         Raises:
             InvalidStateError: 如果任务状态不允许打印
         """
         if self.status != TaskStatus.QUEUED:
-            raise InvalidStateError(
-                f"Cannot start printing: task status is {self.status}"
-            )
+            raise InvalidStateError(f"Cannot start printing: task status is {self.status}")
         self.status = TaskStatus.PRINTING
         self.actual_start_time = datetime.utcnow()
         self.queue_position = None
@@ -92,7 +89,7 @@ class PrintTask(BaseModel):
     def update_progress(self, progress: int) -> None:
         """
         更新打印进度
-        
+
         Args:
             progress: 进度百分比(0-100)
         """
@@ -113,7 +110,7 @@ class PrintTask(BaseModel):
     def mark_failed(self, error: str) -> None:
         """
         标记任务失败
-        
+
         Args:
             error: 错误信息
         """
@@ -125,14 +122,12 @@ class PrintTask(BaseModel):
     def cancel(self) -> None:
         """
         取消任务
-        
+
         Raises:
             InvalidStateError: 如果任务状态不允许取消
         """
         if self.status in [TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.CANCELLED]:
-            raise InvalidStateError(
-                f"Cannot cancel: task is already in final state {self.status}"
-            )
+            raise InvalidStateError(f"Cannot cancel: task is already in final state {self.status}")
         self.status = TaskStatus.CANCELLED
         self.actual_end_time = datetime.utcnow()
         self.updated_at = datetime.utcnow()
@@ -140,27 +135,23 @@ class PrintTask(BaseModel):
     def pause(self) -> None:
         """
         暂停任务
-        
+
         Raises:
             InvalidStateError: 如果任务状态不允许暂停
         """
         if self.status != TaskStatus.PRINTING:
-            raise InvalidStateError(
-                f"Cannot pause: task status is {self.status}"
-            )
+            raise InvalidStateError(f"Cannot pause: task status is {self.status}")
         self.status = TaskStatus.PAUSED
         self.updated_at = datetime.utcnow()
 
     def resume(self) -> None:
         """
         恢复任务
-        
+
         Raises:
             InvalidStateError: 如果任务状态不允许恢复
         """
         if self.status != TaskStatus.PAUSED:
-            raise InvalidStateError(
-                f"Cannot resume: task status is {self.status}"
-            )
+            raise InvalidStateError(f"Cannot resume: task status is {self.status}")
         self.status = TaskStatus.PRINTING
         self.updated_at = datetime.utcnow()

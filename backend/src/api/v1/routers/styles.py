@@ -10,7 +10,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 
-from api.v1.schemas.style import (
+from src.api.v1.schemas.style import (
     ErrorInfoResponse,
     StylePresetResponse,
     StylePresetsResponse,
@@ -18,11 +18,11 @@ from api.v1.schemas.style import (
     StyleTaskResponse,
     StyleTransferResponse,
 )
-from application.services.style_service import StyleService
-from domain.models.style import StyleTask
-from infrastructure.ai.tencent_style import TencentCloudStyleEngine
-from infrastructure.config.settings import settings
-from infrastructure.storage.local_storage import LocalStorageService
+from src.application.services.style_service import StyleService
+from src.domain.models.style import StyleTask
+from src.infrastructure.ai.tencent_style import TencentCloudStyleEngine
+from src.infrastructure.config.settings import settings
+from src.infrastructure.storage.local_storage import LocalStorageService
 
 
 router = APIRouter(prefix="/styles", tags=["styles"])
