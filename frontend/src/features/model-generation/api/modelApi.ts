@@ -31,4 +31,16 @@ export const modelApi = {
   deleteModel: async (id: string): Promise<void> => {
     await apiClient.delete(`/api/v1/models/${id}`)
   },
+
+  getTaskStatus: async (taskId: string): Promise<{
+    task_id: string
+    state: string
+    ready: boolean
+    info?: any
+    result?: any
+    error?: string
+  }> => {
+    const response = await apiClient.get(`/api/v1/models/task/${taskId}`)
+    return response.data
+  },
 }

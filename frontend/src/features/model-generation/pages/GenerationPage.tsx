@@ -28,7 +28,11 @@ export default function GenerationPage() {
       setModelId(response.id);
       setProgress('模型生成中,请稍候...');
       
-      await pollModelStatus(response.celery_task_id || response.id);
+      if (response.celery_task_id) {
+        await pollTaskStatus(response.celery_task_id, response.id);
+      } else {
+        throw new Error('未获取到任务ID');
+      }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : '生成失败,请重试';
       setError(errorMsg);
@@ -54,7 +58,11 @@ export default function GenerationPage() {
       setModelId(response.id);
       setProgress('模型生成中,请稍候...');
       
-      await pollModelStatus(response.celery_task_id || response.id);
+      if (response.celery_task_id) {
+        await pollTaskStatus(response.celery_task_id, response.id);
+      } else {
+        throw new Error('未获取到任务ID');
+      }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : '上传或生成失败,请重试';
       setError(errorMsg);
@@ -65,7 +73,7 @@ export default function GenerationPage() {
     }
   };
 
-  const pollModelStatus = async (id: string) => {
+  const pollTaskStatus = async (taskId: string, modelId: string) => {
     const maxAttempts = 60;
     let attempts = 0;
     
@@ -75,20 +83,29 @@ export default function GenerationPage() {
       }
       
       attempts++;
-      const model = await modelApi.getModel(id);
+      const taskStatus = await modelApi.getTaskStatus(taskId);
       
-      if (model.status === 'completed') {
-        if (model.file_path) {
-          setModelUrl(model.file_path);
+      if (taskStatus.state === 'SUCCESS') {
+        if (taskStatus.result?.model_files?.glb) {
+          setModelUrl(taskStatus.result.model_files.glb);
+          setShowPreview(true);
+          setProgress('模型生成成功!');
+        } else if (taskStatus.result?.file_path) {
+          setModelUrl(taskStatus.result.file_path);
           setShowPreview(true);
           setProgress('模型生成成功!');
         } else {
           throw new Error('模型文件路径不存在');
         }
-      } else if (model.status === 'failed') {
-        throw new Error(model.error_message || '模型生成失败');
+      } else if (taskStatus.state === 'FAILURE') {
+        throw new Error(taskStatus.error || '模型生成失败');
+      } else if (taskStatus.state === 'PROGRESS') {
+        const progressInfo = taskStatus.info?.progress || attempts * 2;
+        setProgress(`生成进度: ${Math.min(progressInfo, 99)}%`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return poll();
       } else {
-        setProgress(`生成进度: ${attempts * 2}%`);
+        setProgress(`任务状态: ${taskStatus.state}`);
         await new Promise(resolve => setTimeout(resolve, 2000));
         return poll();
       }
