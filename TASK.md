@@ -68,11 +68,18 @@
   - [ ] 准备测试 STL 文件
   - [ ] 集成 3D 预览到 GenerationPage
 
-- [ ] **前端基础组件** (#26, 2025-10-24)
-  - [ ] 实现 shared/components/ui/ 基础组件(Button, Input, Loading)
-  - [ ] 创建 features/model-generation/ 目录结构
-  - [ ] 创建 infrastructure/api/client.ts Axios 配置
-  - [ ] 配置 Zustand 状态管理
+- [x] **前端基础组件** (#26, 2025-10-24)
+  - [x] 实现 shared/components/ui/ 基础组件(Button, Input, Loading)
+  - [x] 创建 features/model-generation/ 目录结构
+  - [x] 创建 infrastructure/api/client.ts Axios 配置
+  - [x] 配置 Zustand 状态管理
+  - [x] 使用 semi-design 美化所有组件
+
+- [x] **文本生成界面美化** (#60, 2025-10-25)
+  - [x] 添加示例模板快速填充功能
+  - [x] 优化输入提示和占位符
+  - [x] 增强视觉反馈(状态标签、渐变按钮)
+  - [x] 改进用户体验(Tooltip、动画效果)
 
 - [ ] **模型预览功能**
   - [ ] 3D 模型加载和渲染
