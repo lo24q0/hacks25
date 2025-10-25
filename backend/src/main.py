@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from src.api.v1.routers import files, models, tasks, prints
+from src.api.v1.routers import files, models, tasks, prints, styles
 from src.infrastructure.config.settings import settings
 
 app = FastAPI(
@@ -64,6 +64,10 @@ app = FastAPI(
             "name": "tasks",
             "description": "异步任务管理接口,用于查询 Celery 任务状态",
         },
+        {
+            "name": "styles",
+            "description": "图片风格化接口,支持动漫、卡通、素描等多种风格转换",
+        },
     ],
 )
 
@@ -79,6 +83,7 @@ app.include_router(models.router, prefix="/api/v1")
 app.include_router(files.router, prefix="/api/v1")
 app.include_router(tasks.router, prefix="/api/v1")
 app.include_router(prints.router, prefix="/api/v1")
+app.include_router(styles.router, prefix="/api/v1")
 
 
 @app.get("/health")
