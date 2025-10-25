@@ -17,6 +17,54 @@ app = FastAPI(
     debug=settings.debug,
     docs_url="/docs",
     redoc_url="/redoc",
+    description="""
+## 3D模型打印系统 API
+
+基于Web的用户自定义3D模型生成与打印平台,支持通过文本描述或照片生成3D模型。
+
+### 核心功能
+
+* **文本转3D模型**: 输入文本描述,自动生成3D模型
+* **图片转3D模型**: 上传图片,生成对应的3D模型
+* **异步任务处理**: 使用 Celery 处理长耗时的模型生成任务
+* **多格式支持**: 支持 GLB、OBJ、FBX、STL 等多种模型格式
+* **任务状态查询**: 实时查询模型生成任务的进度和状态
+
+### 技术栈
+
+* **后端框架**: FastAPI
+* **AI服务**: Meshy.ai API
+* **任务队列**: Celery + Redis
+* **3D处理**: trimesh, open3d
+
+### API使用流程
+
+1. 调用 `/api/v1/models/generate/text` 或 `/api/v1/models/generate/image` 创建生成任务
+2. 获取返回的 `celery_task_id`
+3. 使用 `/api/v1/models/task/{task_id}` 查询任务状态和进度
+4. 任务完成后,从 `model_files` 字段获取生成的模型文件路径
+    """,
+    contact={
+        "name": "API Support",
+        "url": "https://github.com/lo24q0/hacks25",
+    },
+    license_info={
+        "name": "MIT",
+    },
+    openapi_tags=[
+        {
+            "name": "models",
+            "description": "3D模型生成相关接口,包括文本转3D、图片转3D等功能",
+        },
+        {
+            "name": "files",
+            "description": "文件管理接口,包括文件上传、下载等功能",
+        },
+        {
+            "name": "tasks",
+            "description": "异步任务管理接口,用于查询 Celery 任务状态",
+        },
+    ],
 )
 
 app.add_middleware(
