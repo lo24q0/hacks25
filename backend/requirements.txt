@@ -10,6 +10,11 @@ celery==5.4.0
 redis==5.0.8
 flower==2.0.1
 python-multipart==0.0.9
+
+# 腾讯云 SDK
+tencentcloud-sdk-python-aiart>=3.0.0
+
+# 开发工具
 black==24.8.0
 flake8==7.1.1
 mypy==1.11.2

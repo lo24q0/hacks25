@@ -9,6 +9,7 @@ class SourceType(Enum):
         TEXT: 文本描述生成
         IMAGE: 图片生成
     """
+
     TEXT = "text"
     IMAGE = "image"
 
@@ -22,6 +23,7 @@ class StorageBackend(Enum):
         MINIO: MinIO对象存储
         S3: AWS S3或兼容服务
     """
+
     LOCAL = "local"
     MINIO = "minio"
     S3 = "s3"

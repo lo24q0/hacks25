@@ -18,6 +18,7 @@ class PrinterProfile:
         max_speed (int): 最大打印速度(mm/s)
         firmware_flavor (str): 固件类型
     """
+
     id: str
     name: str
     bed_size: Tuple[int, int, int]
@@ -39,6 +40,7 @@ class SlicingConfig:
         support_enabled (bool): 是否启用支撑
         adhesion_type (str): 底板附着类型(skirt/brim/raft)
     """
+
     layer_height: float
     infill_density: int
     print_speed: int
@@ -74,6 +76,7 @@ class GCodeResult:
         estimated_material (float): 预估耗材量(克)
         layer_count (int): 层数
     """
+
     gcode_path: str
     estimated_time: timedelta
     estimated_material: float
@@ -89,11 +92,7 @@ class ISlicer(ABC):
 
     @abstractmethod
     async def slice_model(
-        self,
-        stl_path: str,
-        printer: PrinterProfile,
-        config: SlicingConfig,
-        output_path: str
+        self, stl_path: str, printer: PrinterProfile, config: SlicingConfig, output_path: str
     ) -> GCodeResult:
         """
         切片模型生成G-code。

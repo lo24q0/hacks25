@@ -293,5 +293,5 @@ export default function GenerationPage() {
         </Card>
       </div>
     </div>
-  );
+  )
 }

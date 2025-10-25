@@ -5,13 +5,13 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 
 export interface LoadProgress {
-  loaded: number;
-  total: number;
-  percentage: number;
+  loaded: number
+  total: number
+  percentage: number
 }
 
-export type ProgressCallback = (progress: LoadProgress) => void;
-export type ErrorCallback = (error: Error) => void;
+export type ProgressCallback = (progress: LoadProgress) => void
+export type ErrorCallback = (error: Error) => void
 
 export type ModelFormat = 'stl' | 'obj' | 'glb' | 'gltf';
 
@@ -28,29 +28,26 @@ export class ModelLoader {
     this.mtlLoader = new MTLLoader();
   }
 
-  public async loadSTL(
-    url: string,
-    onProgress?: ProgressCallback
-  ): Promise<THREE.Mesh> {
+  public async loadSTL(url: string, onProgress?: ProgressCallback): Promise<THREE.Mesh> {
     return new Promise((resolve, reject) => {
       this.stlLoader.load(
         url,
         (geometry) => {
-          geometry.computeVertexNormals();
-          geometry.center();
+          geometry.computeVertexNormals()
+          geometry.center()
 
           const material = new THREE.MeshPhongMaterial({
             color: 0x4a90e2,
             specular: 0x111111,
             shininess: 100,
             flatShading: false,
-          });
+          })
 
-          const mesh = new THREE.Mesh(geometry, material);
-          mesh.castShadow = true;
-          mesh.receiveShadow = true;
+          const mesh = new THREE.Mesh(geometry, material)
+          mesh.castShadow = true
+          mesh.receiveShadow = true
 
-          resolve(mesh);
+          resolve(mesh)
         },
         (xhr) => {
           if (onProgress && xhr.lengthComputable) {
@@ -58,52 +55,49 @@ export class ModelLoader {
               loaded: xhr.loaded,
               total: xhr.total,
               percentage: (xhr.loaded / xhr.total) * 100,
-            };
-            onProgress(progress);
+            }
+            onProgress(progress)
           }
         },
         (error) => {
-          reject(new Error(`Failed to load STL file: ${error}`));
+          reject(new Error(`Failed to load STL file: ${error}`))
         }
-      );
-    });
+      )
+    })
   }
 
-  public async loadSTLFromFile(
-    file: File,
-    onProgress?: ProgressCallback
-  ): Promise<THREE.Mesh> {
+  public async loadSTLFromFile(file: File, onProgress?: ProgressCallback): Promise<THREE.Mesh> {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
+      const reader = new FileReader()
 
       reader.onload = (event) => {
-        const arrayBuffer = event.target?.result as ArrayBuffer;
-        
+        const arrayBuffer = event.target?.result as ArrayBuffer
+
         try {
-          const geometry = this.stlLoader.parse(arrayBuffer);
-          geometry.computeVertexNormals();
-          geometry.center();
+          const geometry = this.stlLoader.parse(arrayBuffer)
+          geometry.computeVertexNormals()
+          geometry.center()
 
           const material = new THREE.MeshPhongMaterial({
             color: 0x4a90e2,
             specular: 0x111111,
             shininess: 100,
             flatShading: false,
-          });
+          })
 
-          const mesh = new THREE.Mesh(geometry, material);
-          mesh.castShadow = true;
-          mesh.receiveShadow = true;
+          const mesh = new THREE.Mesh(geometry, material)
+          mesh.castShadow = true
+          mesh.receiveShadow = true
 
-          resolve(mesh);
+          resolve(mesh)
         } catch (error) {
-          reject(new Error(`Failed to parse STL file: ${error}`));
+          reject(new Error(`Failed to parse STL file: ${error}`))
         }
-      };
+      }
 
       reader.onerror = () => {
-        reject(new Error('Failed to read file'));
-      };
+        reject(new Error('Failed to read file'))
+      }
 
       reader.onprogress = (event) => {
         if (onProgress && event.lengthComputable) {
@@ -111,15 +105,16 @@ export class ModelLoader {
             loaded: event.loaded,
             total: event.total,
             percentage: (event.loaded / event.total) * 100,
-          };
-          onProgress(progress);
+          }
+          onProgress(progress)
         }
-      };
+      }
 
-      reader.readAsArrayBuffer(file);
-    });
+      reader.readAsArrayBuffer(file)
+    })
   }
 
+<<<<<<< HEAD
   public async loadOBJ(
     url: string,
     mtlUrl?: string,
@@ -285,6 +280,6 @@ export class ModelLoader {
       triangleCount,
       boundingBox: box,
       dimensions,
-    };
+    }
   }
 }
