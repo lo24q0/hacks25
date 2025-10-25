@@ -2,8 +2,10 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID, uuid4
 
+from celery.result import AsyncResult
 from fastapi import APIRouter, HTTPException, Path, Query
 
+from infrastructure.tasks.model_tasks import generate_text_to_3d, generate_image_to_3d
 from ..schemas.model import (
     BoundingBoxResponse,
     DimensionsResponse,
@@ -21,11 +23,14 @@ router = APIRouter(prefix="/models", tags=["models"])
     "/generate/text",
     response_model=ModelResponse,
     summary="文本转3D模型",
-    description="根据文本描述生成3D模型(P0 MVP - 返回mock数据)"
+    description="根据文本描述异步生成3D模型"
 )
 async def generate_from_text(request: TextGenerationRequest) -> ModelResponse:
     """
     根据文本描述生成3D模型。
+
+    创建异步任务,使用 Meshy AI 生成3D模型。
+    任务完成后,模型文件将自动下载到本地存储。
 
     Args:
         request (TextGenerationRequest): 文本生成请求
@@ -33,11 +38,16 @@ async def generate_from_text(request: TextGenerationRequest) -> ModelResponse:
     Returns:
         ModelResponse: 模型响应(包含任务ID和状态)
     """
-    mock_id = uuid4()
+    model_id = uuid4()
     now = datetime.utcnow()
 
+    task = generate_text_to_3d.delay(
+        prompt=request.prompt,
+        model_id=str(model_id),
+    )
+
     return ModelResponse(
-        id=mock_id,
+        id=model_id,
         source_type="text",
         status="pending",
         file_path=None,
@@ -46,6 +56,7 @@ async def generate_from_text(request: TextGenerationRequest) -> ModelResponse:
         error_message=None,
         created_at=now,
         updated_at=now,
+        celery_task_id=task.id,
     )
 
 
@@ -53,11 +64,14 @@ async def generate_from_text(request: TextGenerationRequest) -> ModelResponse:
     "/generate/image",
     response_model=ModelResponse,
     summary="图片转3D模型",
-    description="根据图片生成3D模型(P1功能 - 返回mock数据)"
+    description="根据图片异步生成3D模型"
 )
 async def generate_from_image(request: ImageGenerationRequest) -> ModelResponse:
     """
     根据图片生成3D模型。
+
+    创建异步任务,使用 Meshy AI 从图片生成3D模型。
+    任务完成后,模型文件将自动下载到本地存储。
 
     Args:
         request (ImageGenerationRequest): 图片生成请求
@@ -65,11 +79,21 @@ async def generate_from_image(request: ImageGenerationRequest) -> ModelResponse:
     Returns:
         ModelResponse: 模型响应(包含任务ID和状态)
     """
-    mock_id = uuid4()
+    model_id = uuid4()
     now = datetime.utcnow()
 
+    if not request.image_paths or len(request.image_paths) == 0:
+        raise HTTPException(status_code=400, detail="At least one image path is required")
+
+    image_url = request.image_paths[0]
+
+    task = generate_image_to_3d.delay(
+        image_url=image_url,
+        model_id=str(model_id),
+    )
+
     return ModelResponse(
-        id=mock_id,
+        id=model_id,
         source_type="image",
         status="pending",
         file_path=None,
@@ -78,7 +102,43 @@ async def generate_from_image(request: ImageGenerationRequest) -> ModelResponse:
         error_message=None,
         created_at=now,
         updated_at=now,
+        celery_task_id=task.id,
     )
+
+
+@router.get(
+    "/task/{task_id}",
+    summary="查询任务状态",
+    description="根据Celery任务ID查询异步任务的执行状态和进度"
+)
+async def get_task_status(
+    task_id: str = Path(..., description="Celery任务ID")
+) -> dict:
+    """
+    查询Celery任务状态。
+
+    Args:
+        task_id (str): Celery任务ID
+
+    Returns:
+        dict: 任务状态信息,包括state, progress, result等
+    """
+    result = AsyncResult(task_id)
+    
+    response = {
+        "task_id": task_id,
+        "state": result.state,
+        "ready": result.ready(),
+    }
+    
+    if result.state == "PROGRESS":
+        response["info"] = result.info
+    elif result.state == "SUCCESS":
+        response["result"] = result.result
+    elif result.state == "FAILURE":
+        response["error"] = str(result.info)
+    
+    return response
 
 
 @router.get(

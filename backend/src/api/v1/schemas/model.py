@@ -112,6 +112,8 @@ class ModelResponse(BaseModel):
         thumbnail_path (Optional[str]): 缩略图路径
         metadata (Optional[ModelMetadataResponse]): 模型元数据
         error_message (Optional[str]): 错误信息
+        celery_task_id (Optional[str]): Celery任务ID
+        model_files (Optional[dict]): 模型文件路径字典(glb/obj/fbx/mtl)
         created_at (datetime): 创建时间
         updated_at (datetime): 更新时间
     """
@@ -122,10 +124,16 @@ class ModelResponse(BaseModel):
         description="模型状态",
         examples=["pending", "processing", "completed", "failed"]
     )
-    file_path: Optional[str] = Field(None, description="STL文件路径")
+    file_path: Optional[str] = Field(None, description="STL文件路径(已废弃,使用model_files)")
     thumbnail_path: Optional[str] = Field(None, description="缩略图路径")
     metadata: Optional[ModelMetadataResponse] = Field(None, description="模型元数据")
     error_message: Optional[str] = Field(None, description="错误信息")
+    celery_task_id: Optional[str] = Field(None, description="Celery异步任务ID,用于查询任务状态")
+    model_files: Optional[dict[str, str]] = Field(
+        None, 
+        description="模型文件路径字典,包含glb/obj/fbx/mtl等格式",
+        examples=[{"glb": "/storage/models/xxx.glb", "obj": "/storage/models/xxx.obj"}]
+    )
     created_at: datetime = Field(..., description="创建时间")
     updated_at: datetime = Field(..., description="更新时间")
 
