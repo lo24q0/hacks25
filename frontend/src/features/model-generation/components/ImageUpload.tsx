@@ -1,6 +1,9 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Button } from '@/shared/components/ui';
+import { Button, Card, Space, Typography, Toast } from '@douyinfe/semi-ui';
+import { IconClose } from '@douyinfe/semi-icons';
+
+const { Text } = Typography;
 
 interface ImageUploadProps {
   onUpload: (files: File[]) => void;
@@ -59,8 +62,20 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     };
   }, [previews]);
 
+  React.useEffect(() => {
+    if (fileRejections.length > 0) {
+      const errors = fileRejections.map(({ file, errors }) => 
+        `${file.name}: ${errors.map(e => e.message).join(', ')}`
+      ).join('\n');
+      Toast.error({
+        content: errors,
+        duration: 3,
+      });
+    }
+  }, [fileRejections]);
+
   return (
-    <div className="space-y-4">
+    <Space vertical align="start" style={{ width: '100%' }} spacing="medium">
       <div
         {...getRootProps()}
         className={`
@@ -69,6 +84,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
           ${loading ? 'opacity-50 cursor-not-allowed' : ''}
         `}
+        style={{ width: '100%' }}
       >
         <input {...getInputProps()} disabled={loading} />
         
@@ -87,77 +103,64 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         </svg>
 
         {isDragActive ? (
-          <p className="mt-2 text-sm text-blue-600">松开鼠标上传图片...</p>
+          <Text className="mt-2 text-sm" type="primary">松开鼠标上传图片...</Text>
         ) : (
           <div className="mt-2">
-            <p className="text-sm text-gray-600">
+            <Text className="text-sm text-gray-600">
               拖拽图片到这里,或点击选择文件
-            </p>
-            <p className="mt-1 text-xs text-gray-500">
+            </Text>
+            <br />
+            <Text className="mt-1 text-xs text-gray-500">
               支持 JPG、PNG 格式,最多 {maxFiles} 张,每张最大 {maxSize / 1024 / 1024}MB
-            </p>
+            </Text>
           </div>
         )}
       </div>
 
-      {fileRejections.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-3">
-          <p className="text-sm text-red-600 font-medium">以下文件不符合要求:</p>
-          <ul className="mt-1 text-xs text-red-500 list-disc list-inside">
-            {fileRejections.map(({ file, errors }) => (
-              <li key={file.name}>
-                {file.name}: {errors.map(e => e.message).join(', ')}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
       {uploadedFiles.length > 0 && (
-        <div className="space-y-3">
-          <p className="text-sm font-medium text-gray-700">
-            已选择 {uploadedFiles.length} 张图片:
-          </p>
+        <Space vertical align="start" style={{ width: '100%' }} spacing="medium">
+          <Text strong>已选择 {uploadedFiles.length} 张图片:</Text>
           
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4" style={{ width: '100%' }}>
             {uploadedFiles.map((file, index) => (
-              <div key={index} className="relative group">
+              <Card
+                key={index}
+                bodyStyle={{ padding: 8 }}
+                className="relative group"
+              >
                 <img
                   src={previews[index]}
                   alt={file.name}
-                  className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                  className="w-full h-32 object-cover rounded-lg"
                 />
                 <button
                   type="button"
                   onClick={() => removeFile(index)}
                   className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 
                            opacity-0 group-hover:opacity-100 transition-opacity duration-200
-                           hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                           hover:bg-red-600 focus:outline-none"
                   disabled={loading}
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <IconClose size="small" />
                 </button>
-                <p className="mt-1 text-xs text-gray-600 truncate">{file.name}</p>
-              </div>
+                <Text size="small" className="mt-1 truncate block">{file.name}</Text>
+              </Card>
             ))}
           </div>
 
           <Button
-            type="button"
-            variant="primary"
-            size="lg"
-            fullWidth
+            type="primary"
+            size="large"
+            block
             onClick={handleSubmit}
             disabled={loading}
             loading={loading}
           >
             {loading ? '上传中...' : '上传并生成 3D 模型'}
           </Button>
-        </div>
+        </Space>
       )}
-    </div>
+    </Space>
   );
 };
 
