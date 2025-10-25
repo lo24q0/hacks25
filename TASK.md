@@ -109,6 +109,12 @@
   - [x] 更新 ARCH.md 和 INITIAL.md 技术选型
   - [x] 更新 IStyleEngine 接口定义
   - [x] 创建完整的风格化 API 设计文档 (docs/API_STYLE.md)
+  - [x] **P0: 实现腾讯云错误码映射** (#65, 2025-10-25)
+    - [x] 创建 TencentCloudAPIError 异常类
+    - [x] 创建错误码映射配置 (23 个错误码)
+    - [x] 实现错误处理器
+    - [x] 创建错误码映射文档
+    - [x] 更新相关文档
   - [ ] 实现腾讯云风格化客户端 (infrastructure/ai/tencent_style.py)
   - [ ] 实现风格化应用服务 (application/services/style_service.py)
   - [ ] 实现风格化 API 路由 (api/v1/routers/styles.py)
