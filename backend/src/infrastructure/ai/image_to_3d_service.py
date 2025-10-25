@@ -11,8 +11,8 @@ import os
 from pathlib import Path
 from typing import Optional, Union
 
-from infrastructure.ai.meshy_client import MeshyAPIError, MeshyClient
-from infrastructure.ai.meshy_models import (
+from src.infrastructure.ai.meshy_client import MeshyAPIError, MeshyClient
+from src.infrastructure.ai.meshy_models import (
     GenerationConfig,
     ImageTo3DRequest,
     MeshyTaskResponse,

@@ -4,8 +4,8 @@ Meshy AI 集成模块。
 提供 Meshy AI API 客户端、数据模型及3D模型生成服务。
 """
 
-from infrastructure.ai.image_to_3d_service import ImageTo3DService
-from infrastructure.ai.meshy_client import (
+from src.infrastructure.ai.image_to_3d_service import ImageTo3DService
+from src.infrastructure.ai.meshy_client import (
     MeshyAPIError,
     MeshyAuthenticationError,
     MeshyClient,
@@ -13,8 +13,8 @@ from infrastructure.ai.meshy_client import (
     MeshyServerError,
     MeshyValidationError,
 )
-from infrastructure.ai.meshy_model_generator import MeshyModelGenerator
-from infrastructure.ai.meshy_models import (
+from src.infrastructure.ai.meshy_model_generator import MeshyModelGenerator
+from src.infrastructure.ai.meshy_models import (
     AIModel,
     ArtStyle,
     GenerationConfig,
@@ -30,7 +30,7 @@ from infrastructure.ai.meshy_models import (
     TextureUrls,
     TopologyType,
 )
-from infrastructure.ai.text_to_3d_service import TextTo3DService
+from src.infrastructure.ai.text_to_3d_service import TextTo3DService
 
 __all__ = [
     # Client

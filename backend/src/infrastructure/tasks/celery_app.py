@@ -28,10 +28,10 @@ celery_app.conf.update(
     worker_prefetch_multiplier=1,
     worker_max_tasks_per_child=1000,
     task_routes={
-        "infrastructure.tasks.model_tasks.*": {"queue": "generation"},
-        "infrastructure.tasks.style_tasks.*": {"queue": "style"},
-        "infrastructure.tasks.slicing_tasks.*": {"queue": "slicing"},
-        "infrastructure.tasks.test_tasks.*": {"queue": "default"},
+        "src.infrastructure.tasks.model_tasks.*": {"queue": "generation"},
+        "src.infrastructure.tasks.style_tasks.*": {"queue": "style"},
+        "src.infrastructure.tasks.slicing_tasks.*": {"queue": "slicing"},
+        "src.infrastructure.tasks.test_tasks.*": {"queue": "default"},
     },
     task_default_queue="default",
     task_default_exchange="default",
@@ -42,7 +42,7 @@ celery_app.conf.update(
 
 celery_app.autodiscover_tasks(
     [
-        "infrastructure.tasks",
+        "src.infrastructure.tasks",
     ]
 )
 

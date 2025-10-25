@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 from celery.result import AsyncResult
 from fastapi import APIRouter, HTTPException, Path, Query
 
-from infrastructure.tasks.model_tasks import generate_text_to_3d, generate_image_to_3d
+from src.infrastructure.tasks.model_tasks import generate_text_to_3d, generate_image_to_3d
 from ..schemas.model import (
     BoundingBoxResponse,
     DimensionsResponse,
