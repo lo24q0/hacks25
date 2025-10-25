@@ -203,10 +203,14 @@ async def register_printer(
 
     if request.adapter_type == AdapterType.BAMBU:
         adapter = BambuAdapter()
-        await adapter.connect(request.connection_config)
+        # 尝试连接打印机,但即使失败也允许注册
+        # 理由: 打印机可能暂时离线,注册后状态会显示为OFFLINE
+        connected = await adapter.connect(request.connection_config)
+        if not connected:
+            logger.warning(f"Failed to connect to printer {request.name}, but registering anyway (will be OFFLINE)")
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported adapter type: {request.adapter_type}")
-    
+
     await print_service.register_printer(printer, adapter)
     
     return PrinterResponse.from_domain(printer)

@@ -18,7 +18,7 @@ from tencentcloud.aiart.v20221229 import aiart_client, models
 
 from src.domain.interfaces.i_style_engine import IStyleEngine, StylePreset
 from src.shared.exceptions.tencent_cloud_exceptions import TencentCloudAPIError
-from src.shared.config.tencent_cloud_error_mapping import TencentCloudErrorMapping
+from src.shared.config.tencent_cloud_error_mapping import ErrorMapping as TencentCloudErrorMapping
 
 
 class TencentCloudStyleEngine(IStyleEngine):
