@@ -107,7 +107,6 @@ dump.rdb
 
 # Docker
 docker-compose.override.yml
-.dockerignore
 
 # OS
 Thumbs.db
