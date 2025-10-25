@@ -23,7 +23,31 @@ router = APIRouter(prefix="/models", tags=["models"])
     "/generate/text",
     response_model=ModelResponse,
     summary="文本转3D模型",
-    description="根据文本描述异步生成3D模型"
+    description="根据文本描述异步生成3D模型",
+    responses={
+        200: {
+            "description": "任务创建成功,返回模型ID和任务ID",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "123e4567-e89b-12d3-a456-426614174000",
+                        "source_type": "text",
+                        "status": "pending",
+                        "file_path": None,
+                        "thumbnail_path": None,
+                        "metadata": None,
+                        "error_message": None,
+                        "celery_task_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                        "model_files": None,
+                        "created_at": "2025-10-25T10:00:00",
+                        "updated_at": "2025-10-25T10:00:00",
+                    }
+                }
+            },
+        },
+        400: {"description": "请求参数错误"},
+        500: {"description": "服务器内部错误"},
+    },
 )
 async def generate_from_text(request: TextGenerationRequest) -> ModelResponse:
     """
@@ -109,7 +133,64 @@ async def generate_from_image(request: ImageGenerationRequest) -> ModelResponse:
 @router.get(
     "/task/{task_id}",
     summary="查询任务状态",
-    description="根据Celery任务ID查询异步任务的执行状态和进度"
+    description="根据Celery任务ID查询异步任务的执行状态和进度",
+    responses={
+        200: {
+            "description": "任务状态查询成功",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "pending": {
+                            "summary": "任务等待中",
+                            "value": {
+                                "task_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                                "state": "PENDING",
+                                "ready": False,
+                            },
+                        },
+                        "progress": {
+                            "summary": "任务进行中",
+                            "value": {
+                                "task_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                                "state": "PROGRESS",
+                                "ready": False,
+                                "info": {
+                                    "stage": "generating_preview",
+                                    "progress": 45,
+                                    "status": "Generating preview: 45%",
+                                },
+                            },
+                        },
+                        "success": {
+                            "summary": "任务完成",
+                            "value": {
+                                "task_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                                "state": "SUCCESS",
+                                "ready": True,
+                                "result": {
+                                    "model_id": "123e4567-e89b-12d3-a456-426614174000",
+                                    "model_files": {
+                                        "glb": "/storage/models/xxx.glb",
+                                        "obj": "/storage/models/xxx.obj",
+                                    },
+                                    "thumbnail_path": "/storage/thumbnails/xxx.png",
+                                },
+                            },
+                        },
+                        "failure": {
+                            "summary": "任务失败",
+                            "value": {
+                                "task_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                                "state": "FAILURE",
+                                "ready": True,
+                                "error": "MeshyAPIError: Rate limit exceeded",
+                            },
+                        },
+                    }
+                }
+            },
+        },
+    },
 )
 async def get_task_status(
     task_id: str = Path(..., description="Celery任务ID")
