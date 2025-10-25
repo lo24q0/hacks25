@@ -133,11 +133,21 @@ make shell-backend   # 进入后端容器 shell
 
 启动成功后，可以通过以下地址访问各个服务：
 
-- **前端应用**: http://localhost (或 http://localhost:80)
+**开发环境** (默认配置，`FRONTEND_PORT=5173`):
+- **前端应用**: http://localhost:5173
 - **后端 API**: http://localhost:8000
-- **API 文档**: http://localhost/docs 或 http://localhost:8000/docs
+- **API 文档**: http://localhost:5173/docs (通过 Nginx 代理) 或 http://localhost:8000/docs (直接访问)
+- **健康检查**: http://localhost:5173/health
+- **Flower 监控**: http://localhost:5555 (需启用 monitoring profile)
+
+**生产环境** (需在 `.env` 中设置 `FRONTEND_PORT=80`):
+- **前端应用**: http://localhost
+- **后端 API**: http://localhost:8000
+- **API 文档**: http://localhost/docs (通过 Nginx 代理) 或 http://localhost:8000/docs (直接访问)
 - **健康检查**: http://localhost/health
 - **Flower 监控**: http://localhost:5555 (需启用 monitoring profile)
+
+> **注意**: 使用 80 端口在 Mac/Linux 系统上可能需要管理员权限，且可能与本地其他服务冲突。开发环境推荐使用 5173 端口。
 
 #### 验证服务
 
@@ -149,11 +159,11 @@ docker exec -it 3dprint-redis redis-cli ping
 # 测试后端健康检查
 curl http://localhost:8000/health
 
-# 测试前端健康检查
-curl http://localhost/health
+# 测试前端健康检查 (开发环境)
+curl http://localhost:5173/health
 
-# 测试前端能否访问后端 API
-curl http://localhost/api/v1/models
+# 测试前端代理到后端 (开发环境)
+curl http://localhost:5173/api/v1/models
 # 应该返回模型列表(当前为 mock 数据)
 
 # 查看 Celery Worker 状态
