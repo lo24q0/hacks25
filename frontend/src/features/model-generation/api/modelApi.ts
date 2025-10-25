@@ -4,16 +4,14 @@ import type { GenerateModelResponse, Model3D } from '../types/model.types';
 export const modelApi = {
   generateFromText: async (textPrompt: string): Promise<GenerateModelResponse> => {
     const response = await apiClient.post<GenerateModelResponse>('/api/v1/models/generate/text', {
-      sourceType: 'text',
-      textPrompt,
+      prompt: textPrompt,
     })
     return response.data
   },
 
   generateFromImage: async (imagePaths: string[]): Promise<GenerateModelResponse> => {
     const response = await apiClient.post<GenerateModelResponse>('/api/v1/models/generate/image', {
-      sourceType: 'image',
-      imagePaths,
+      image_paths: imagePaths,
     })
     return response.data
   },
@@ -32,5 +30,17 @@ export const modelApi = {
 
   deleteModel: async (id: string): Promise<void> => {
     await apiClient.delete(`/api/v1/models/${id}`)
+  },
+
+  getTaskStatus: async (taskId: string): Promise<{
+    task_id: string
+    state: string
+    ready: boolean
+    info?: any
+    result?: any
+    error?: string
+  }> => {
+    const response = await apiClient.get(`/api/v1/models/task/${taskId}`)
+    return response.data
   },
 }
