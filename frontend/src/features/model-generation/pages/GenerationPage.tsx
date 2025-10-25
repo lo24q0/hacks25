@@ -1,22 +1,20 @@
-import { useState } from 'react';
-import ModelPreview from '../components/ModelPreview';
+import { useState } from 'react'
+import ModelPreview from '../components/ModelPreview'
 
 export default function GenerationPage() {
-  const [modelUrl, setModelUrl] = useState<string>('');
-  const [showPreview, setShowPreview] = useState(false);
+  const [modelUrl, setModelUrl] = useState<string>('')
+  const [showPreview, setShowPreview] = useState(false)
 
   const handleLoadDemo = () => {
-    setModelUrl('/test-models/cube.stl');
-    setShowPreview(true);
-  };
+    setModelUrl('/test-models/cube.stl')
+    setShowPreview(true)
+  }
 
   return (
     <div className="space-y-8">
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900">3D模型生成</h2>
-        <p className="mt-2 text-gray-600">
-          通过文本描述或照片生成3D模型
-        </p>
+        <p className="mt-2 text-gray-600">通过文本描述或照片生成3D模型</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -39,7 +37,7 @@ export default function GenerationPage() {
             >
               生成3D模型
             </button>
-            
+
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
@@ -91,5 +89,5 @@ export default function GenerationPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

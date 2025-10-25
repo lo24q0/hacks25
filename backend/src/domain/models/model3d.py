@@ -16,6 +16,7 @@ class ValidationResult:
         is_valid (bool): 是否验证通过
         errors (list[str]): 错误信息列表
     """
+
     is_valid: bool
     errors: list[str] = field(default_factory=list)
 
@@ -38,6 +39,7 @@ class Model3D:
         created_at (datetime): 创建时间
         updated_at (datetime): 更新时间
     """
+
     id: UUID = field(default_factory=uuid4)
     user_id: Optional[UUID] = None
     source_type: SourceType = SourceType.TEXT
@@ -59,11 +61,13 @@ class Model3D:
         """
         if self.status != ModelStatus.PENDING:
             raise ValueError(f"Cannot start generation from status: {self.status}")
-        
+
         self.status = ModelStatus.PROCESSING
         self.updated_at = datetime.utcnow()
 
-    def mark_completed(self, file_path: str, metadata: ModelMetadata, thumbnail_path: Optional[str] = None) -> None:
+    def mark_completed(
+        self, file_path: str, metadata: ModelMetadata, thumbnail_path: Optional[str] = None
+    ) -> None:
         """
         标记模型生成完成。
 
@@ -77,10 +81,10 @@ class Model3D:
         """
         if self.status != ModelStatus.PROCESSING:
             raise ValueError(f"Cannot mark completed from status: {self.status}")
-        
+
         if not file_path or not file_path.strip():
             raise ValueError("file_path cannot be empty")
-        
+
         self.status = ModelStatus.COMPLETED
         self.file_path = file_path
         self.metadata = metadata
@@ -100,7 +104,7 @@ class Model3D:
         """
         if not error or not error.strip():
             raise ValueError("error message cannot be empty")
-        
+
         self.status = ModelStatus.FAILED
         self.error_message = error
         self.updated_at = datetime.utcnow()
@@ -128,10 +132,7 @@ class Model3D:
             if self.metadata.volume <= 0:
                 errors.append("Model has zero or negative volume")
 
-        return ValidationResult(
-            is_valid=len(errors) == 0,
-            errors=errors
-        )
+        return ValidationResult(is_valid=len(errors) == 0, errors=errors)
 
     def is_completed(self) -> bool:
         """

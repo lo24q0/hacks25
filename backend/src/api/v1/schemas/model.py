@@ -13,17 +13,16 @@ class TextGenerationRequest(BaseModel):
         prompt (str): 文本描述提示词
         style_preset (Optional[str]): 风格化预设ID
     """
+
     prompt: str = Field(
         ...,
         min_length=10,
         max_length=1000,
         description="文本描述提示词,长度10-1000字符",
-        examples=["一个圆形的咖啡杯,带有手柄"]
+        examples=["一个圆形的咖啡杯,带有手柄"],
     )
     style_preset: Optional[str] = Field(
-        None,
-        description="风格化预设ID(可选)",
-        examples=["anime", "cartoon"]
+        None, description="风格化预设ID(可选)", examples=["anime", "cartoon"]
     )
 
 
@@ -35,17 +34,15 @@ class ImageGenerationRequest(BaseModel):
         image_paths (list[str]): 图片文件路径列表
         style_preset (Optional[str]): 风格化预设ID
     """
+
     image_paths: list[str] = Field(
         ...,
         min_length=1,
         max_length=5,
         description="图片文件路径列表,最多5张",
-        examples=[["uploads/image1.jpg", "uploads/image2.jpg"]]
+        examples=[["uploads/image1.jpg", "uploads/image2.jpg"]],
     )
-    style_preset: Optional[str] = Field(
-        None,
-        description="风格化预设ID(可选)"
-    )
+    style_preset: Optional[str] = Field(None, description="风格化预设ID(可选)")
 
 
 class DimensionsResponse(BaseModel):
@@ -57,6 +54,7 @@ class DimensionsResponse(BaseModel):
         y (float): Y轴尺寸(毫米)
         z (float): Z轴尺寸(毫米)
     """
+
     x: float = Field(..., description="X轴尺寸(毫米)")
     y: float = Field(..., description="Y轴尺寸(毫米)")
     z: float = Field(..., description="Z轴尺寸(毫米)")
@@ -70,14 +68,9 @@ class BoundingBoxResponse(BaseModel):
         min_point (tuple[float, float, float]): 最小点坐标
         max_point (tuple[float, float, float]): 最大点坐标
     """
-    min_point: tuple[float, float, float] = Field(
-        ...,
-        description="最小点坐标(x,y,z)"
-    )
-    max_point: tuple[float, float, float] = Field(
-        ...,
-        description="最大点坐标(x,y,z)"
-    )
+
+    min_point: tuple[float, float, float] = Field(..., description="最小点坐标(x,y,z)")
+    max_point: tuple[float, float, float] = Field(..., description="最大点坐标(x,y,z)")
 
 
 class ModelMetadataResponse(BaseModel):
@@ -92,6 +85,7 @@ class ModelMetadataResponse(BaseModel):
         is_manifold (bool): 是否流形
         bounding_box (BoundingBoxResponse): 包围盒
     """
+
     dimensions: DimensionsResponse
     volume: float = Field(..., description="体积(立方毫米)")
     triangle_count: int = Field(..., description="三角面数量")
@@ -115,12 +109,11 @@ class ModelResponse(BaseModel):
         created_at (datetime): 创建时间
         updated_at (datetime): 更新时间
     """
+
     id: UUID = Field(..., description="模型唯一标识")
     source_type: str = Field(..., description="源类型(text/image)")
     status: str = Field(
-        ...,
-        description="模型状态",
-        examples=["pending", "processing", "completed", "failed"]
+        ..., description="模型状态", examples=["pending", "processing", "completed", "failed"]
     )
     file_path: Optional[str] = Field(None, description="STL文件路径")
     thumbnail_path: Optional[str] = Field(None, description="缩略图路径")
@@ -138,5 +131,6 @@ class ModelListResponse(BaseModel):
         total (int): 总数
         items (list[ModelResponse]): 模型列表
     """
+
     total: int = Field(..., description="模型总数")
     items: list[ModelResponse] = Field(..., description="模型列表")

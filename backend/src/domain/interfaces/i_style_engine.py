@@ -13,14 +13,8 @@ class StylePreset:
         model_name (str): 使用的模型名称
         preview_image (str): 预览图片路径
     """
-    def __init__(
-        self,
-        id: str,
-        name: str,
-        description: str,
-        model_name: str,
-        preview_image: str
-    ):
+
+    def __init__(self, id: str, name: str, description: str, model_name: str, preview_image: str):
         self.id = id
         self.name = name
         self.description = description

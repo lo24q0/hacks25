@@ -5,7 +5,7 @@ from uuid import UUID
 from ..models.model3d import Model3D
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class IRepository(ABC, Generic[T]):

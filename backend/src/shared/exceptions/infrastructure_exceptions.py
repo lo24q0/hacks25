@@ -23,12 +23,8 @@ class ExternalServiceError(InfrastructureException):
         status_code (int, optional): HTTP status code from the service.
     """
 
-    def __init__(
-        self, service_name: str, message: str, status_code: int | None = None
-    ):
-        super().__init__(
-            f"{service_name} error: {message}", error_code="EXTERNAL_SERVICE_ERROR"
-        )
+    def __init__(self, service_name: str, message: str, status_code: int | None = None):
+        super().__init__(f"{service_name} error: {message}", error_code="EXTERNAL_SERVICE_ERROR")
         self.service_name = service_name
         self.status_code = status_code
 
@@ -72,8 +68,6 @@ class TaskExecutionError(InfrastructureException):
     """
 
     def __init__(self, task_name: str, message: str, retry_count: int = 0):
-        super().__init__(
-            f"Task '{task_name}' failed: {message}", error_code="TASK_EXECUTION_ERROR"
-        )
+        super().__init__(f"Task '{task_name}' failed: {message}", error_code="TASK_EXECUTION_ERROR")
         self.task_name = task_name
         self.retry_count = retry_count

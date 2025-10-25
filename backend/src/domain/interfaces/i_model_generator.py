@@ -30,7 +30,9 @@ class IModelGenerator(ABC):
         pass
 
     @abstractmethod
-    async def generate_from_image(self, image_path: str, style_preset: Optional[str] = None) -> Model3D:
+    async def generate_from_image(
+        self, image_path: str, style_preset: Optional[str] = None
+    ) -> Model3D:
         """
         从图片生成3D模型。
 

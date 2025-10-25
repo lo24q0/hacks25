@@ -1,6 +1,6 @@
-import { createBrowserRouter } from 'react-router-dom';
-import App from './App';
-import GenerationPage from '../features/model-generation/pages/GenerationPage';
+import { createBrowserRouter } from 'react-router-dom'
+import App from './App'
+import GenerationPage from '../features/model-generation/pages/GenerationPage'
 
 export const router = createBrowserRouter([
   {
@@ -13,4 +13,4 @@ export const router = createBrowserRouter([
       },
     ],
   },
-]);
+])

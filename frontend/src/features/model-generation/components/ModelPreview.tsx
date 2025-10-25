@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
-import { SceneManager, ModelLoader, LoadProgress } from '../../../infrastructure/three';
+import { useEffect, useRef, useState } from 'react'
+import { SceneManager, ModelLoader, LoadProgress } from '../../../infrastructure/three'
 
 interface ModelPreviewProps {
-  modelUrl?: string;
-  modelFile?: File;
-  className?: string;
-  onLoadComplete?: () => void;
-  onLoadError?: (error: Error) => void;
+  modelUrl?: string
+  modelFile?: File
+  className?: string
+  onLoadComplete?: () => void
+  onLoadError?: (error: Error) => void
 }
 
 export default function ModelPreview({
@@ -16,63 +16,61 @@ export default function ModelPreview({
   onLoadComplete,
   onLoadError,
 }: ModelPreviewProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const sceneManagerRef = useRef<SceneManager | null>(null);
-  const modelLoaderRef = useRef<ModelLoader | null>(null);
-  
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadProgress, setLoadProgress] = useState<LoadProgress | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null)
+  const sceneManagerRef = useRef<SceneManager | null>(null)
+  const modelLoaderRef = useRef<ModelLoader | null>(null)
+
+  const [isLoading, setIsLoading] = useState(false)
+  const [loadProgress, setLoadProgress] = useState<LoadProgress | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [modelInfo, setModelInfo] = useState<{
-    vertexCount: number;
-    triangleCount: number;
-    dimensions: { x: number; y: number; z: number };
-  } | null>(null);
+    vertexCount: number
+    triangleCount: number
+    dimensions: { x: number; y: number; z: number }
+  } | null>(null)
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) return
 
     sceneManagerRef.current = new SceneManager(containerRef.current, {
       antialias: true,
       backgroundColor: 0xf0f0f0,
       enableShadows: true,
-    });
+    })
 
-    modelLoaderRef.current = new ModelLoader();
+    modelLoaderRef.current = new ModelLoader()
 
     return () => {
-      sceneManagerRef.current?.dispose();
-      sceneManagerRef.current = null;
-      modelLoaderRef.current = null;
-    };
-  }, []);
+      sceneManagerRef.current?.dispose()
+      sceneManagerRef.current = null
+      modelLoaderRef.current = null
+    }
+  }, [])
 
   useEffect(() => {
     const loadModel = async () => {
-      if (!sceneManagerRef.current || !modelLoaderRef.current) return;
-      if (!modelUrl && !modelFile) return;
+      if (!sceneManagerRef.current || !modelLoaderRef.current) return
+      if (!modelUrl && !modelFile) return
 
-      setIsLoading(true);
-      setError(null);
-      setLoadProgress(null);
+      setIsLoading(true)
+      setError(null)
+      setLoadProgress(null)
 
       try {
         const mesh = modelFile
-          ? await modelLoaderRef.current.loadSTLFromFile(
-              modelFile,
-              (progress) => setLoadProgress(progress)
+          ? await modelLoaderRef.current.loadSTLFromFile(modelFile, (progress) =>
+              setLoadProgress(progress)
             )
           : modelUrl
-          ? await modelLoaderRef.current.loadSTL(
-              modelUrl,
-              (progress) => setLoadProgress(progress)
-            )
-          : null;
+            ? await modelLoaderRef.current.loadSTL(modelUrl, (progress) =>
+                setLoadProgress(progress)
+              )
+            : null
 
         if (mesh) {
-          sceneManagerRef.current.addModel(mesh);
-          
-          const info = modelLoaderRef.current.getModelInfo(mesh);
+          sceneManagerRef.current.addModel(mesh)
+
+          const info = modelLoaderRef.current.getModelInfo(mesh)
           setModelInfo({
             vertexCount: info.vertexCount,
             triangleCount: Math.floor(info.triangleCount),
@@ -81,22 +79,22 @@ export default function ModelPreview({
               y: parseFloat(info.dimensions.y.toFixed(2)),
               z: parseFloat(info.dimensions.z.toFixed(2)),
             },
-          });
+          })
 
-          onLoadComplete?.();
+          onLoadComplete?.()
         }
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load model';
-        setError(errorMessage);
-        onLoadError?.(err instanceof Error ? err : new Error(errorMessage));
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load model'
+        setError(errorMessage)
+        onLoadError?.(err instanceof Error ? err : new Error(errorMessage))
       } finally {
-        setIsLoading(false);
-        setLoadProgress(null);
+        setIsLoading(false)
+        setLoadProgress(null)
       }
-    };
+    }
 
-    loadModel();
-  }, [modelUrl, modelFile, onLoadComplete, onLoadError]);
+    loadModel()
+  }, [modelUrl, modelFile, onLoadComplete, onLoadError])
 
   return (
     <div className={`relative ${className}`}>
@@ -203,8 +201,18 @@ export default function ModelPreview({
         <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-3">
           <div className="text-xs text-gray-600">
             <div className="flex items-center gap-2 mb-1">
-              <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+              <svg
+                className="h-4 w-4 text-blue-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"
+                />
               </svg>
               <span className="font-medium text-gray-900">Controls</span>
             </div>
@@ -217,5 +225,5 @@ export default function ModelPreview({
         </div>
       )}
     </div>
-  );
+  )
 }
