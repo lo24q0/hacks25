@@ -19,9 +19,11 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - STORAGE_BACKEND=${STORAGE_BACKEND:-local}
       - STORAGE_LOCAL_PATH=/app/data
+      - STORAGE_PATH=/app/storage
       - TEMP_FILE_TTL_HOURS=${TEMP_FILE_TTL_HOURS:-24}
       - MAX_UPLOAD_SIZE_MB=${MAX_UPLOAD_SIZE_MB:-10}
       - MESHY_API_KEY=${MESHY_API_KEY:-}
+      - MOCK_MODE=${MOCK_MODE:-true}
       - MESHY_API_URL=${MESHY_API_URL:-https://api.meshy.ai}
       - MODEL_GENERATION_TIMEOUT=${MODEL_GENERATION_TIMEOUT:-300}
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost}
@@ -106,7 +108,7 @@ services:
       dockerfile: Dockerfile
     container_name: 3dprint-celery-worker
     restart: unless-stopped
-    command: celery -A infrastructure.tasks.celery_app worker --loglevel=${LOG_LEVEL:-info} --concurrency=2
+    command: celery -A src.infrastructure.tasks.celery_app worker --loglevel=${LOG_LEVEL:-info} --concurrency=2
     environment:
       - APP_ENV=${APP_ENV:-development}
       - DEBUG=${DEBUG:-true}
@@ -116,7 +118,9 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - STORAGE_BACKEND=${STORAGE_BACKEND:-local}
       - STORAGE_LOCAL_PATH=/app/data
+      - STORAGE_PATH=/app/storage
       - MESHY_API_KEY=${MESHY_API_KEY:-}
+      - MOCK_MODE=${MOCK_MODE:-true}
       - MESHY_API_URL=${MESHY_API_URL:-https://api.meshy.ai}
       - MODEL_GENERATION_TIMEOUT=${MODEL_GENERATION_TIMEOUT:-300}
       - PYTHONPATH=/app/src
@@ -130,7 +134,7 @@ services:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "celery -A infrastructure.tasks.celery_app inspect ping -d celery@$$HOSTNAME"]
+      test: ["CMD-SHELL", "celery -A src.infrastructure.tasks.celery_app inspect ping -d celery@$$HOSTNAME"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -150,7 +154,7 @@ services:
       dockerfile: Dockerfile
     container_name: 3dprint-flower
     restart: unless-stopped
-    command: celery -A infrastructure.tasks.celery_app flower --port=5555
+    command: celery -A src.infrastructure.tasks.celery_app flower --port=5555
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0

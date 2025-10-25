@@ -64,6 +64,8 @@ export interface GenerateModelResponse {
   metadata?: ModelMetadata
   error_message?: string
   celery_task_id?: string
+  taskId?: string  // 添加 taskId 属性
+  model?: Model3D  // 添加 model 属性
   model_files?: {
     glb?: string
     obj?: string

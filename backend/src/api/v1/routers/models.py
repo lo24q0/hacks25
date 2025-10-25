@@ -1,10 +1,11 @@
+import logging
 from datetime import datetime
 from uuid import UUID, uuid4
 
 from celery.result import AsyncResult
 from fastapi import APIRouter, HTTPException, Path, Query
 
-from infrastructure.tasks.model_tasks import generate_text_to_3d, generate_image_to_3d
+from src.infrastructure.tasks.model_tasks import generate_text_to_3d, generate_image_to_3d
 from ..schemas.model import (
     BoundingBoxResponse,
     DimensionsResponse,
@@ -16,6 +17,7 @@ from ..schemas.model import (
 )
 
 router = APIRouter(prefix="/models", tags=["models"])
+logger = logging.getLogger(__name__)
 
 
 @router.post(
@@ -63,11 +65,18 @@ async def generate_from_text(request: TextGenerationRequest) -> ModelResponse:
     """
     model_id = uuid4()
     now = datetime.utcnow()
+    
+    logger.info(f"Creating text-to-3d task for model_id: {model_id}, prompt: {request.prompt[:50]}...")
 
-    task = generate_text_to_3d.delay(
-        prompt=request.prompt,
-        model_id=str(model_id),
-    )
+    try:
+        task = generate_text_to_3d.delay(
+            prompt=request.prompt,
+            model_id=str(model_id),
+        )
+        logger.info(f"Text-to-3d task created successfully: task_id={task.id}, model_id={model_id}")
+    except Exception as e:
+        logger.error(f"Failed to create text-to-3d task for model_id: {model_id}, error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create generation task: {str(e)}")
 
     return ModelResponse(
         id=model_id,
@@ -104,16 +113,25 @@ async def generate_from_image(request: ImageGenerationRequest) -> ModelResponse:
     """
     model_id = uuid4()
     now = datetime.utcnow()
+    
+    logger.info(f"Creating image-to-3d task for model_id: {model_id}, image_paths: {request.image_paths}")
 
     if not request.image_paths or len(request.image_paths) == 0:
+        logger.error(f"No image paths provided for model_id: {model_id}")
         raise HTTPException(status_code=400, detail="At least one image path is required")
 
     image_url = request.image_paths[0]
+    logger.info(f"Using first image URL: {image_url}")
 
-    task = generate_image_to_3d.delay(
-        image_url=image_url,
-        model_id=str(model_id),
-    )
+    try:
+        task = generate_image_to_3d.delay(
+            image_url=image_url,
+            model_id=str(model_id),
+        )
+        logger.info(f"Image-to-3d task created successfully: task_id={task.id}, model_id={model_id}")
+    except Exception as e:
+        logger.error(f"Failed to create image-to-3d task for model_id: {model_id}, error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create generation task: {str(e)}")
 
     return ModelResponse(
         id=model_id,
@@ -203,22 +221,45 @@ async def get_task_status(
     Returns:
         dict: 任务状态信息,包括state, progress, result等
     """
-    result = AsyncResult(task_id)
+    logger.info(f"Querying task status for task_id: {task_id}")
     
-    response = {
-        "task_id": task_id,
-        "state": result.state,
-        "ready": result.ready(),
-    }
-    
-    if result.state == "PROGRESS":
-        response["info"] = result.info
-    elif result.state == "SUCCESS":
-        response["result"] = result.result
-    elif result.state == "FAILURE":
-        response["error"] = str(result.info)
-    
-    return response
+    try:
+        result = AsyncResult(task_id)
+        logger.debug(f"AsyncResult created for task_id: {task_id}, state: {result.state}")
+        
+        response = {
+            "task_id": task_id,
+            "state": result.state,
+            "ready": result.ready(),
+        }
+        
+        if result.state == "PROGRESS":
+            logger.debug(f"Task {task_id} is in PROGRESS state, info: {result.info}")
+            response["info"] = result.info
+        elif result.state == "SUCCESS":
+            logger.info(f"Task {task_id} completed successfully, result: {result.result}")
+            response["result"] = result.result
+        elif result.state == "FAILURE":
+            logger.error(f"Task {task_id} failed, error info: {result.info}")
+            logger.error(f"Task {task_id} traceback: {result.traceback}")
+            response["error"] = str(result.info)
+            response["traceback"] = result.traceback
+        elif result.state == "PENDING":
+            logger.info(f"Task {task_id} is still pending")
+        elif result.state == "RETRY":
+            logger.warning(f"Task {task_id} is retrying")
+        else:
+            logger.warning(f"Task {task_id} has unknown state: {result.state}")
+        
+        logger.info(f"Task status query completed for task_id: {task_id}, state: {result.state}")
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error querying task status for task_id: {task_id}, error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to query task status: {str(e)}"
+        )
 
 
 @router.get(

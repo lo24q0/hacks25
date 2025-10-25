@@ -92,6 +92,18 @@ class Settings(BaseSettings):
         default="meshy-5", description="Meshy AI 默认模型版本"
     )
 
+    # Mock 模式配置
+    mock_mode: bool = Field(
+        default=False, 
+        description="是否启用 mock 模式(返回预设的 STL 文件)",
+        alias="MOCK_MODE"
+    )
+    storage_path: str = Field(
+        default="/app/storage", 
+        description="文件存储根路径",
+        alias="STORAGE_PATH"
+    )
+
     @property
     def redis_url(self) -> str:
         """

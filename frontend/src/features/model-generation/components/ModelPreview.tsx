@@ -63,7 +63,7 @@ export default function ModelPreview({
               setLoadProgress(progress)
             )
           : modelUrl
-            ? await modelLoaderRef.current.loadSTL(modelUrl, (progress) =>
+            ? await modelLoaderRef.current.loadModel(modelUrl, undefined, undefined, (progress) =>
                 setLoadProgress(progress)
               )
             : null
