@@ -210,6 +210,8 @@ class MeshyTaskResponse(BaseModel):
     包含任务状态、进度、模型 URL 等信息。
     """
 
+    model_config = {"protected_namespaces": ()}
+
     id: str = Field(..., description="任务 ID")
     status: TaskStatus = Field(..., description="任务状态")
     progress: int = Field(default=0, ge=0, le=100, description="任务进度百分比")

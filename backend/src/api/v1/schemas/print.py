@@ -21,6 +21,8 @@ class CreatePrintTaskRequest(BaseModel):
     """
     创建打印任务请求
     """
+    model_config = {"protected_namespaces": ()}
+
     model_id: UUID = Field(..., description="3D模型ID")
     printer_id: str = Field(..., description="打印机ID")
     slicing_config: Optional[SlicingConfig] = Field(None, description="切片配置")
@@ -31,6 +33,8 @@ class PrintTaskResponse(BaseModel):
     """
     打印任务响应
     """
+    model_config = {"protected_namespaces": ()}
+
     id: UUID
     model_id: UUID
     printer_id: str
@@ -121,6 +125,8 @@ class PrintTaskSummary(BaseModel):
     """
     打印任务摘要
     """
+    model_config = {"protected_namespaces": ()}
+
     id: UUID
     model_id: UUID
     printer_id: str
