@@ -23,3 +23,10 @@ mypy==1.11.2
 pre-commit==3.8.0
 paho-mqtt==2.1.0
 trimesh==4.5.3
+
+# 数据库
+sqlalchemy==2.0.31
+alembic==1.13.2
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+aiosqlite==0.20.0
