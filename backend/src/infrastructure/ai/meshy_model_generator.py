@@ -8,14 +8,14 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from domain.enums import ModelStatus, SourceType
-from domain.interfaces.i_model_generator import IModelGenerator
-from domain.models.model3d import Model3D
-from domain.value_objects import ModelMetadata, SourceData
-from infrastructure.ai.image_to_3d_service import ImageTo3DService
-from infrastructure.ai.meshy_client import MeshyAPIError, MeshyClient
-from infrastructure.ai.meshy_models import GenerationConfig, MeshyTaskResponse
-from infrastructure.ai.text_to_3d_service import TextTo3DService
+from src.domain.enums import ModelStatus, SourceType
+from src.domain.interfaces.i_model_generator import IModelGenerator
+from src.domain.models.model3d import Model3D
+from src.domain.value_objects import ModelMetadata, SourceData
+from src.infrastructure.ai.image_to_3d_service import ImageTo3DService
+from src.infrastructure.ai.meshy_client import MeshyAPIError, MeshyClient
+from src.infrastructure.ai.meshy_models import GenerationConfig, MeshyTaskResponse
+from src.infrastructure.ai.text_to_3d_service import TextTo3DService
 
 logger = logging.getLogger(__name__)
 

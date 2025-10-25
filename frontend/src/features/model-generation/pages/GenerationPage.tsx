@@ -15,7 +15,7 @@ export default function GenerationPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [modelId, setModelId] = useState<string | null>(null);
+  const [currentModelId, setCurrentModelId] = useState<string | null>(null);
   const [progress, setProgress] = useState<string>('');
 
   const handleTextGenerate = async (text: string) => {
@@ -25,7 +25,7 @@ export default function GenerationPage() {
     
     try {
       const response = await modelApi.generateFromText(text);
-      setModelId(response.id);
+      setCurrentModelId(response.id);
       setProgress('模型生成中,请稍候...');
       
       if (response.celery_task_id) {
@@ -55,7 +55,7 @@ export default function GenerationPage() {
       setProgress('图片上传成功,正在生成 3D 模型...');
       
       const response = await modelApi.generateFromImage(imagePaths);
-      setModelId(response.id);
+      setCurrentModelId(response.id);
       setProgress('模型生成中,请稍候...');
       
       if (response.celery_task_id) {
@@ -115,14 +115,14 @@ export default function GenerationPage() {
   };
 
   const handleDownloadModel = async () => {
-    if (!modelId) return;
+    if (!currentModelId) return;
     
     try {
-      const blob = await modelApi.downloadModel(modelId);
+      const blob = await modelApi.downloadModel(currentModelId);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `model_${modelId}.stl`;
+      a.download = `model_${currentModelId}.stl`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -220,7 +220,7 @@ export default function GenerationPage() {
           <Card className="rounded-2xl shadow-xl" bodyStyle={{ padding: 32 }}>
             <div className="flex items-center justify-between mb-6">
               <Title heading={3}>3D 预览</Title>
-              {showPreview && modelId && (
+              {showPreview && currentModelId && (
                 <Button
                   type="primary"
                   icon={<IconDownload />}

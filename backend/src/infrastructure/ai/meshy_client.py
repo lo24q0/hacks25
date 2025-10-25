@@ -15,14 +15,14 @@ from tenacity import (
     wait_exponential,
 )
 
-from infrastructure.ai.meshy_models import (
+from src.infrastructure.ai.meshy_models import (
     ImageTo3DRequest,
     MeshyTaskListResponse,
     MeshyTaskResponse,
     TextTo3DPreviewRequest,
     TextTo3DRefineRequest,
 )
-from infrastructure.config.settings import settings
+from src.infrastructure.config.settings import settings
 
 logger = logging.getLogger(__name__)
 
