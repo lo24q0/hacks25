@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { SceneManager, ModelLoader, LoadProgress } from '../../../infrastructure/three';
+import { SceneManager, ModelLoader } from '../../../infrastructure/three';
+import type { LoadProgress } from '../../../infrastructure/three';
 
 interface ModelPreviewProps {
   modelUrl?: string;

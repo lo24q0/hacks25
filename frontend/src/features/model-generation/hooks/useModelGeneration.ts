@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { modelApi } from '../api/modelApi';
-import type { Model3D, ModelStatus } from '../types/model.types';
+import type { Model3D } from '../types/model.types';
 
 export const useModelGeneration = () => {
   const [loading, setLoading] = useState(false);
