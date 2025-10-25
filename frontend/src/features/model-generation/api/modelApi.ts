@@ -1,5 +1,5 @@
-import { apiClient } from '@/infrastructure/api/client';
-import type { GenerateModelResponse, Model3D } from '../types/model.types';
+import { apiClient } from '@/infrastructure/api/client'
+import type { GenerateModelResponse, Model3D } from '../types/model.types'
 
 export const modelApi = {
   generateFromText: async (textPrompt: string): Promise<GenerateModelResponse> => {
@@ -32,12 +32,14 @@ export const modelApi = {
     await apiClient.delete(`/api/v1/models/${id}`)
   },
 
-  getTaskStatus: async (taskId: string): Promise<{
+  getTaskStatus: async (
+    taskId: string
+  ): Promise<{
     task_id: string
     state: string
     ready: boolean
-    info?: any
-    result?: any
+    info?: { progress?: number }
+    result?: { model_files?: { glb?: string }; file_path?: string }
     error?: string
   }> => {
     const response = await apiClient.get(`/api/v1/models/task/${taskId}`)

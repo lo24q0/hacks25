@@ -1,145 +1,158 @@
-import { useState } from 'react';
-import ModelPreview from '../components/ModelPreview';
-import TextInput from '../components/TextInput';
-import ImageUpload from '../components/ImageUpload';
-import { modelApi } from '../api/modelApi';
-import { fileApi } from '../api/fileApi';
-import { Button, Card, Tabs, TabPane, Banner, Spin, Typography, Space, Toast } from '@douyinfe/semi-ui';
-import { IconEdit, IconImage, IconDownload } from '@douyinfe/semi-icons';
+import { useState } from 'react'
+import ModelPreview from '../components/ModelPreview'
+import TextInput from '../components/TextInput'
+import ImageUpload from '../components/ImageUpload'
+import { modelApi } from '../api/modelApi'
+import { fileApi } from '../api/fileApi'
+import {
+  Button,
+  Card,
+  Tabs,
+  TabPane,
+  Banner,
+  Spin,
+  Typography,
+  Space,
+  Toast,
+} from '@douyinfe/semi-ui'
+import { IconEdit, IconImage, IconDownload } from '@douyinfe/semi-icons'
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph, Text } = Typography
 
 export default function GenerationPage() {
-  const [activeTab, setActiveTab] = useState<string>('text');
-  const [modelUrl, setModelUrl] = useState<string>('');
-  const [showPreview, setShowPreview] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [currentModelId, setCurrentModelId] = useState<string | null>(null);
-  const [progress, setProgress] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<string>('text')
+  const [modelUrl, setModelUrl] = useState<string>('')
+  const [showPreview, setShowPreview] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [currentModelId, setCurrentModelId] = useState<string | null>(null)
+  const [progress, setProgress] = useState<string>('')
 
   const handleTextGenerate = async (text: string) => {
-    setLoading(true);
-    setError(null);
-    setProgress('正在生成 3D 模型...');
-    
+    setLoading(true)
+    setError(null)
+    setProgress('正在生成 3D 模型...')
+
     try {
-      const response = await modelApi.generateFromText(text);
-      setCurrentModelId(response.id);
-      setProgress('模型生成中,请稍候...');
-      
+      const response = await modelApi.generateFromText(text)
+      setCurrentModelId(response.id)
+      setProgress('模型生成中,请稍候...')
+
       if (response.celery_task_id) {
-        await pollTaskStatus(response.celery_task_id, response.id);
+        await pollTaskStatus(response.celery_task_id)
       } else {
-        throw new Error('未获取到任务ID');
+        throw new Error('未获取到任务ID')
       }
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : '生成失败,请重试';
-      setError(errorMsg);
-      Toast.error(errorMsg);
-      setProgress('');
+      const errorMsg = err instanceof Error ? err.message : '生成失败,请重试'
+      setError(errorMsg)
+      Toast.error(errorMsg)
+      setProgress('')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleImageUpload = async (files: File[]) => {
-    setLoading(true);
-    setError(null);
-    setProgress('正在上传图片...');
-    
+    setLoading(true)
+    setError(null)
+    setProgress('正在上传图片...')
+
     try {
-      const uploadedFiles = await fileApi.uploadMultipleFiles(files, 24);
-      const imagePaths = uploadedFiles.map(f => f.object_key);
-      
-      setProgress('图片上传成功,正在生成 3D 模型...');
-      
-      const response = await modelApi.generateFromImage(imagePaths);
-      setCurrentModelId(response.id);
-      setProgress('模型生成中,请稍候...');
-      
+      const uploadedFiles = await fileApi.uploadMultipleFiles(files, 24)
+      const imagePaths = uploadedFiles.map((f) => f.object_key)
+
+      setProgress('图片上传成功,正在生成 3D 模型...')
+
+      const response = await modelApi.generateFromImage(imagePaths)
+      setCurrentModelId(response.id)
+      setProgress('模型生成中,请稍候...')
+
       if (response.celery_task_id) {
-        await pollTaskStatus(response.celery_task_id, response.id);
+        await pollTaskStatus(response.celery_task_id)
       } else {
-        throw new Error('未获取到任务ID');
+        throw new Error('未获取到任务ID')
       }
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : '上传或生成失败,请重试';
-      setError(errorMsg);
-      Toast.error(errorMsg);
-      setProgress('');
+      const errorMsg = err instanceof Error ? err.message : '上传或生成失败,请重试'
+      setError(errorMsg)
+      Toast.error(errorMsg)
+      setProgress('')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  const pollTaskStatus = async (taskId: string, modelId: string) => {
-    const maxAttempts = 60;
-    let attempts = 0;
-    
+  const pollTaskStatus = async (taskId: string) => {
+    const maxAttempts = 60
+    let attempts = 0
+
     const poll = async (): Promise<void> => {
       if (attempts >= maxAttempts) {
-        throw new Error('生成超时,请重试');
+        throw new Error('生成超时,请重试')
       }
-      
-      attempts++;
-      const taskStatus = await modelApi.getTaskStatus(taskId);
-      
+
+      attempts++
+      const taskStatus = await modelApi.getTaskStatus(taskId)
+
       if (taskStatus.state === 'SUCCESS') {
         if (taskStatus.result?.model_files?.glb) {
-          setModelUrl(taskStatus.result.model_files.glb);
-          setShowPreview(true);
-          setProgress('模型生成成功!');
+          setModelUrl(taskStatus.result.model_files.glb)
+          setShowPreview(true)
+          setProgress('模型生成成功!')
         } else if (taskStatus.result?.file_path) {
-          setModelUrl(taskStatus.result.file_path);
-          setShowPreview(true);
-          setProgress('模型生成成功!');
+          setModelUrl(taskStatus.result.file_path)
+          setShowPreview(true)
+          setProgress('模型生成成功!')
         } else {
-          throw new Error('模型文件路径不存在');
+          throw new Error('模型文件路径不存在')
         }
       } else if (taskStatus.state === 'FAILURE') {
-        throw new Error(taskStatus.error || '模型生成失败');
+        throw new Error(taskStatus.error || '模型生成失败')
       } else if (taskStatus.state === 'PROGRESS') {
-        const progressInfo = taskStatus.info?.progress || attempts * 2;
-        setProgress(`生成进度: ${Math.min(progressInfo, 99)}%`);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        return poll();
+        const progressInfo = taskStatus.info?.progress || attempts * 2
+        setProgress(`生成进度: ${Math.min(progressInfo, 99)}%`)
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        return poll()
       } else {
-        setProgress(`任务状态: ${taskStatus.state}`);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        return poll();
+        setProgress(`任务状态: ${taskStatus.state}`)
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        return poll()
       }
-    };
-    
-    return poll();
-  };
+    }
+
+    return poll()
+  }
 
   const handleDownloadModel = async () => {
-    if (!currentModelId) return;
-    
+    if (!currentModelId) return
+
     try {
-      const blob = await modelApi.downloadModel(currentModelId);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `model_${currentModelId}.stl`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      Toast.success('模型下载成功!');
-    } catch (err) {
-      const errorMsg = '下载失败,请重试';
-      setError(errorMsg);
-      Toast.error(errorMsg);
+      const blob = await modelApi.downloadModel(currentModelId)
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `model_${currentModelId}.stl`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      Toast.success('模型下载成功!')
+    } catch {
+      const errorMsg = '下载失败,请重试'
+      setError(errorMsg)
+      Toast.error(errorMsg)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <Title heading={1} className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-4">
+          <Title
+            heading={1}
+            className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-4"
+          >
             AI 3D 模型生成器
           </Title>
           <Paragraph className="text-xl text-gray-600">
@@ -149,19 +162,19 @@ export default function GenerationPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <Card className="rounded-2xl shadow-xl" bodyStyle={{ padding: 32 }}>
-            <Tabs 
-              type="button" 
-              activeKey={activeTab} 
+            <Tabs
+              type="button"
+              activeKey={activeTab}
               onChange={setActiveTab}
               style={{ marginBottom: 24 }}
             >
-              <TabPane 
+              <TabPane
                 tab={
                   <Space>
                     <IconEdit />
                     <span>文本生成</span>
                   </Space>
-                } 
+                }
                 itemKey="text"
               >
                 <Space vertical align="start" spacing="medium" style={{ width: '100%' }}>
@@ -173,13 +186,13 @@ export default function GenerationPage() {
                   <TextInput onGenerate={handleTextGenerate} loading={loading} />
                 </Space>
               </TabPane>
-              <TabPane 
+              <TabPane
                 tab={
                   <Space>
                     <IconImage />
                     <span>图片生成</span>
                   </Space>
-                } 
+                }
                 itemKey="image"
               >
                 <Space vertical align="start" spacing="medium" style={{ width: '100%' }}>
@@ -269,41 +282,85 @@ export default function GenerationPage() {
         </div>
 
         <Card className="mt-12 rounded-2xl shadow-lg" bodyStyle={{ padding: 32 }}>
-          <Title heading={3} style={{ marginBottom: 24 }}>功能特点</Title>
+          <Title heading={3} style={{ marginBottom: 24 }}>
+            功能特点
+          </Title>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="flex items-start">
               <div className="flex-shrink-0 bg-blue-100 rounded-lg p-3">
-                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <svg
+                  className="w-6 h-6 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
                 </svg>
               </div>
               <div className="ml-4">
-                <Title heading={4} style={{ margin: 0 }}>AI 驱动</Title>
-                <Paragraph style={{ margin: '4px 0 0 0' }}>使用先进的 AI 技术,快速生成高质量 3D 模型</Paragraph>
+                <Title heading={4} style={{ margin: 0 }}>
+                  AI 驱动
+                </Title>
+                <Paragraph style={{ margin: '4px 0 0 0' }}>
+                  使用先进的 AI 技术,快速生成高质量 3D 模型
+                </Paragraph>
               </div>
             </div>
 
             <div className="flex items-start">
               <div className="flex-shrink-0 bg-purple-100 rounded-lg p-3">
-                <svg className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                <svg
+                  className="w-6 h-6 text-purple-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"
+                  />
                 </svg>
               </div>
               <div className="ml-4">
-                <Title heading={4} style={{ margin: 0 }}>简单易用</Title>
-                <Paragraph style={{ margin: '4px 0 0 0' }}>无需专业知识,输入描述或上传图片即可开始</Paragraph>
+                <Title heading={4} style={{ margin: 0 }}>
+                  简单易用
+                </Title>
+                <Paragraph style={{ margin: '4px 0 0 0' }}>
+                  无需专业知识,输入描述或上传图片即可开始
+                </Paragraph>
               </div>
             </div>
 
             <div className="flex items-start">
               <div className="flex-shrink-0 bg-green-100 rounded-lg p-3">
-                <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <svg
+                  className="w-6 h-6 text-green-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
                 </svg>
               </div>
               <div className="ml-4">
-                <Title heading={4} style={{ margin: 0 }}>即时下载</Title>
-                <Paragraph style={{ margin: '4px 0 0 0' }}>生成后可立即下载 STL 格式,用于 3D 打印</Paragraph>
+                <Title heading={4} style={{ margin: 0 }}>
+                  即时下载
+                </Title>
+                <Paragraph style={{ margin: '4px 0 0 0' }}>
+                  生成后可立即下载 STL 格式,用于 3D 打印
+                </Paragraph>
               </div>
             </div>
           </div>
