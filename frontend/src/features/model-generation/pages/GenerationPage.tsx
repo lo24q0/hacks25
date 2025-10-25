@@ -25,10 +25,10 @@ export default function GenerationPage() {
     
     try {
       const response = await modelApi.generateFromText(text);
-      setModelId(response.taskId);
+      setModelId(response.id);
       setProgress('模型生成中,请稍候...');
       
-      await pollModelStatus(response.taskId);
+      await pollModelStatus(response.celery_task_id || response.id);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : '生成失败,请重试';
       setError(errorMsg);
@@ -51,10 +51,10 @@ export default function GenerationPage() {
       setProgress('图片上传成功,正在生成 3D 模型...');
       
       const response = await modelApi.generateFromImage(imagePaths);
-      setModelId(response.taskId);
+      setModelId(response.id);
       setProgress('模型生成中,请稍候...');
       
-      await pollModelStatus(response.taskId);
+      await pollModelStatus(response.celery_task_id || response.id);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : '上传或生成失败,请重试';
       setError(errorMsg);
@@ -78,15 +78,15 @@ export default function GenerationPage() {
       const model = await modelApi.getModel(id);
       
       if (model.status === 'completed') {
-        if (model.filePath) {
-          setModelUrl(model.filePath);
+        if (model.file_path) {
+          setModelUrl(model.file_path);
           setShowPreview(true);
           setProgress('模型生成成功!');
         } else {
           throw new Error('模型文件路径不存在');
         }
       } else if (model.status === 'failed') {
-        throw new Error(model.errorMessage || '模型生成失败');
+        throw new Error(model.error_message || '模型生成失败');
       } else {
         setProgress(`生成进度: ${attempts * 2}%`);
         await new Promise(resolve => setTimeout(resolve, 2000));
