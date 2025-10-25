@@ -200,7 +200,7 @@ async def register_printer(
         connection_config=request.connection_config,
         profile=request.profile
     )
-    
+
     if request.adapter_type == AdapterType.BAMBU:
         adapter = BambuAdapter()
         await adapter.connect(request.connection_config)
