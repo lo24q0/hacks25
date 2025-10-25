@@ -7,7 +7,22 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
     curl \
+    wget \
+    file \
     && rm -rf /var/lib/apt/lists/*
+
+# 安装 CuraEngine
+# 原因: 使用官方 AppImage 并解压以在 Docker 中使用
+RUN CURA_VERSION="5.8.0" && \
+    wget -O /tmp/CuraEngine.AppImage \
+    "https://github.com/Ultimaker/CuraEngine/releases/download/${CURA_VERSION}/CuraEngine-${CURA_VERSION}-linux-X64.AppImage" && \
+    chmod +x /tmp/CuraEngine.AppImage && \
+    cd /tmp && \
+    ./CuraEngine.AppImage --appimage-extract && \
+    mv squashfs-root/usr/bin/CuraEngine /usr/local/bin/CuraEngine && \
+    chmod +x /usr/local/bin/CuraEngine && \
+    rm -rf /tmp/CuraEngine.AppImage /tmp/squashfs-root && \
+    /usr/local/bin/CuraEngine --version
 
 # 优化依赖安装缓存策略:
 # 1. 先单独复制 requirements.txt
