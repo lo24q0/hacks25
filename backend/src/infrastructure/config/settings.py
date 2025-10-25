@@ -64,6 +64,15 @@ class Settings(BaseSettings):
         default="INFO", description="日志级别"
     )
 
+    # 数据库配置
+    database_url: str = Field(
+        default="sqlite+aiosqlite:///./print_platform.db",
+        description="数据库连接URL"
+    )
+    database_echo: bool = Field(default=False, description="是否打印SQL语句")
+    database_pool_size: int = Field(default=5, description="数据库连接池大小")
+    database_max_overflow: int = Field(default=10, description="数据库连接池最大溢出")
+
     redis_host: str = Field(default="redis", description="Redis 主机地址")
     redis_port: int = Field(default=6379, description="Redis 端口")
     redis_password: str = Field(default="", description="Redis 密码")
