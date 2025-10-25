@@ -13,8 +13,8 @@ export const useModelGeneration = () => {
       setLoading(true);
       setError(null);
       const response = await modelApi.generateFromText(textPrompt);
-      setTaskId(response.taskId);
-      setModel(response.model || null);
+      setTaskId(response.id);
+      setModel(response);
       return response;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate model';
@@ -30,8 +30,8 @@ export const useModelGeneration = () => {
       setLoading(true);
       setError(null);
       const response = await modelApi.generateFromImage(imagePaths);
-      setTaskId(response.taskId);
-      setModel(response.model || null);
+      setTaskId(response.id);
+      setModel(response);
       return response;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate model';
