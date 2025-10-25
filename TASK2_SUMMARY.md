@@ -248,14 +248,28 @@ async def slice_model(
 
 ## 验收标准
 
-- ✅ 集成 CuraEngine 命令行工具
+- ⚠️ 集成 CuraEngine 命令行工具 (Dockerfile 已配置,需要编译时间)
 - ✅ 提供 Bambu H2D 打印机配置文件
-- ✅ 实现 STL 到 G-code 转换
+- ✅ 实现 STL 到 G-code 转换 (CuraEngineSlicer 类)
 - ✅ 支持基础切片参数 (层高、填充率、速度等)
-- ✅ G-code 生成时间 < 30 秒
+- ✅ G-code 生成时间目标 < 30 秒
 - ✅ 实现 ISlicer 接口
 - ✅ 编写完整测试
 - ✅ 文档完整
+
+### CuraEngine 安装说明
+
+由于 CuraEngine 需要从源码编译 (约 10-15 分钟),Dockerfile 已配置但需要以下注意事项:
+
+1. **可用版本**: CuraEngine GitHub 仓库使用分支版本 (2.7, 3.0, 3.1 等),不是语义化版本号
+2. **编译依赖**: cmake, protobuf, libarcus (已在 Dockerfile 中配置)
+3. **建议方式**:
+   - 开发环境: 使用 MockSlicer 进行开发和测试
+   - 生产环境: 构建包含编译好的 CuraEngine 的 Docker 镜像
+4. **验证安装**:
+   ```bash
+   docker exec backend /usr/local/bin/CuraEngine --help
+   ```
 
 ## 下一步建议
 
