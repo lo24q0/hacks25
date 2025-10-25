@@ -1,9 +1,10 @@
 """
-AI �!W
+Meshy AI 集成模块。
 
-Л Meshy AI I,	� AI ���7
+提供 Meshy AI API 客户端、数据模型及3D模型生成服务。
 """
 
+from infrastructure.ai.image_to_3d_service import ImageTo3DService
 from infrastructure.ai.meshy_client import (
     MeshyAPIError,
     MeshyAuthenticationError,
@@ -12,6 +13,7 @@ from infrastructure.ai.meshy_client import (
     MeshyServerError,
     MeshyValidationError,
 )
+from infrastructure.ai.meshy_model_generator import MeshyModelGenerator
 from infrastructure.ai.meshy_models import (
     AIModel,
     ArtStyle,
@@ -28,6 +30,7 @@ from infrastructure.ai.meshy_models import (
     TextureUrls,
     TopologyType,
 )
+from infrastructure.ai.text_to_3d_service import TextTo3DService
 
 __all__ = [
     # Client
@@ -38,6 +41,10 @@ __all__ = [
     "MeshyRateLimitError",
     "MeshyServerError",
     "MeshyValidationError",
+    # Services
+    "TextTo3DService",
+    "ImageTo3DService",
+    "MeshyModelGenerator",
     # Models - Request
     "TextTo3DPreviewRequest",
     "TextTo3DRefineRequest",
