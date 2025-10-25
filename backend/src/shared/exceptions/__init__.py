@@ -11,6 +11,12 @@ from .infrastructure_exceptions import (
     StorageError,
     TaskExecutionError,
 )
+from .tencent_cloud_exceptions import (
+    AuthenticationError,
+    ImageProcessingError,
+    QuotaExceededError,
+    TencentCloudAPIError,
+)
 
 __all__ = [
     "DomainException",
@@ -22,4 +28,8 @@ __all__ = [
     "StorageError",
     "DatabaseError",
     "TaskExecutionError",
+    "TencentCloudAPIError",
+    "ImageProcessingError",
+    "QuotaExceededError",
+    "AuthenticationError",
 ]

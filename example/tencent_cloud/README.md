@@ -284,20 +284,27 @@ class UserQuota:
 
 ## 错误处理
 
+### 统一错误处理
+
+项目已实现完整的错误码映射机制,将腾讯云返回的技术性错误码映射为用户友好的错误提示。
+
+**详细文档**: 请参阅 [腾讯云错误码映射文档](../../docs/TENCENT_CLOUD_ERROR_MAPPING.md)
+
 ### 常见错误码
 
-| 错误码 | 错误描述 | 解决方案 |
-|-------|---------|---------|
-| `FailedOperation.ImageDecodeFailed` | 图片解码失败 | 检查图片格式和 Base64 编码 |
-| `FailedOperation.ImageResolutionExceed` | 图片分辨率过大 | 压缩至 2048x2048 以下 |
-| `FailedOperation.RequestTimeout` | 请求超时 | 重试或降低分辨率 |
-| `LimitExceeded.TooLargeFileError` | 文件过大 | 压缩至 10MB 以下 |
-| `ResourceUsSuspended.InsufficientBalance` | 余额不足 | 充值账户 |
+| 错误码 | 系统错误码 | 错误描述 | 解决方案 | 可重试 |
+|-------|-----------|---------|---------|-------|
+| `FailedOperation.ImageDecodeFailed` | `INVALID_FILE_FORMAT` | 图片解码失败 | 检查图片格式和 Base64 编码 | ❌ |
+| `FailedOperation.ImageResolutionExceed` | `IMAGE_RESOLUTION_TOO_HIGH` | 图片分辨率过大 | 压缩至 2048x2048 以下 | ❌ |
+| `FailedOperation.RequestTimeout` | `REQUEST_TIMEOUT` | 请求超时 | 重试或降低分辨率 | ✅ |
+| `LimitExceeded.TooLargeFileError` | `FILE_TOO_LARGE` | 文件过大 | 压缩至 10MB 以下 | ❌ |
+| `ResourceUsSuspended.InsufficientBalance` | `INSUFFICIENT_BALANCE` | 余额不足 | 充值账户 | ❌ |
 
-### 错误处理示例
+### 使用错误处理器
 
 ```python
 from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentCloudSDKException
+from error_handler import TencentCloudErrorHandler
 
 try:
     result = client.transfer_style(
@@ -305,18 +312,29 @@ try:
         style_type="anime"
     )
 except TencentCloudSDKException as e:
-    error_code = e.code
-    error_msg = e.message
+    # 使用错误处理器转换异常
+    system_exception = TencentCloudErrorHandler.handle_exception(e)
 
-    if error_code == "FailedOperation.ImageResolutionExceed":
-        print("图片分辨率过大,请压缩后重试")
-        # 执行图片压缩逻辑
-    elif error_code == "FailedOperation.RequestTimeout":
-        print("请求超时,正在重试...")
+    # 获取用户友好的错误信息
+    print(f"错误: {system_exception.user_message}")
+    print(f"建议: {system_exception.suggestion}")
+
+    # 判断是否可重试
+    if TencentCloudErrorHandler.should_retry(system_exception):
+        print("正在重试...")
         # 执行重试逻辑
     else:
-        print(f"未知错误: {error_code} - {error_msg}")
-        raise
+        # 返回错误给用户
+        error_response = TencentCloudErrorHandler.format_error_response(system_exception)
+        return error_response
+```
+
+### 测试错误处理
+
+运行测试脚本查看完整的错误码映射:
+
+```bash
+python test_error_mapping.py
 ```
 
 ---
