@@ -1,0 +1,25 @@
+# 测试图片和输出文件
+test_input.*
+test_output_*
+*.jpg
+*.png
+*.jpeg
+*.webp
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# 虚拟环境
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
