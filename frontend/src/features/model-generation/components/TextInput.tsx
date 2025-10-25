@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Input } from '@/shared/components/ui';
+import { Button, TextArea, Toast } from '@douyinfe/semi-ui';
 
 interface TextInputProps {
   onGenerate: (text: string) => void;
@@ -13,6 +13,8 @@ const TextInput: React.FC<TextInputProps> = ({ onGenerate, loading = false }) =>
     e.preventDefault();
     if (text.trim() && text.length >= 10) {
       onGenerate(text);
+    } else {
+      Toast.warning('描述长度应在 10-1000 字符之间');
     }
   };
 
@@ -20,21 +22,32 @@ const TextInput: React.FC<TextInputProps> = ({ onGenerate, loading = false }) =>
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <Input
-        label="模型描述"
-        placeholder="请输入模型描述 (10-1000字符)..."
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        fullWidth
-        helperText={`${text.length}/1000 字符`}
-        error={text.length > 0 && !isValid ? '描述长度应在 10-1000 字符之间' : undefined}
-      />
+      <div>
+        <TextArea
+          placeholder="请输入模型描述 (10-1000字符)..."
+          value={text}
+          onChange={(value) => setText(value)}
+          rows={6}
+          maxLength={1000}
+          showClear
+          validateStatus={text.length > 0 && !isValid ? 'error' : 'default'}
+          style={{ width: '100%' }}
+        />
+        <div className="mt-2 text-sm text-gray-500 text-right">
+          {text.length}/1000 字符
+        </div>
+        {text.length > 0 && !isValid && (
+          <div className="mt-1 text-sm text-red-500">
+            描述长度应在 10-1000 字符之间
+          </div>
+        )}
+      </div>
       
       <Button
-        type="submit"
-        variant="primary"
-        size="lg"
-        fullWidth
+        htmlType="submit"
+        type="primary"
+        size="large"
+        block
         disabled={!isValid || loading}
         loading={loading}
       >

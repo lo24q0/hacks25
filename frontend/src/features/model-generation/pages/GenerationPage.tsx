@@ -4,12 +4,13 @@ import TextInput from '../components/TextInput';
 import ImageUpload from '../components/ImageUpload';
 import { modelApi } from '../api/modelApi';
 import { fileApi } from '../api/fileApi';
-import { Loading } from '@/shared/components/ui';
+import { Button, Card, Tabs, TabPane, Banner, Spin, Typography, Space, Toast } from '@douyinfe/semi-ui';
+import { IconEdit, IconImage, IconDownload } from '@douyinfe/semi-icons';
 
-type TabType = 'text' | 'image';
+const { Title, Paragraph, Text } = Typography;
 
 export default function GenerationPage() {
-  const [activeTab, setActiveTab] = useState<TabType>('text');
+  const [activeTab, setActiveTab] = useState<string>('text');
   const [modelUrl, setModelUrl] = useState<string>('');
   const [showPreview, setShowPreview] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -24,12 +25,14 @@ export default function GenerationPage() {
     
     try {
       const response = await modelApi.generateFromText(text);
-      setModelId(response.id);
+      setModelId(response.taskId);
       setProgress('模型生成中,请稍候...');
       
-      await pollModelStatus(response.id);
+      await pollModelStatus(response.taskId);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '生成失败,请重试');
+      const errorMsg = err instanceof Error ? err.message : '生成失败,请重试';
+      setError(errorMsg);
+      Toast.error(errorMsg);
       setProgress('');
     } finally {
       setLoading(false);
@@ -48,12 +51,14 @@ export default function GenerationPage() {
       setProgress('图片上传成功,正在生成 3D 模型...');
       
       const response = await modelApi.generateFromImage(imagePaths);
-      setModelId(response.id);
+      setModelId(response.taskId);
       setProgress('模型生成中,请稍候...');
       
-      await pollModelStatus(response.id);
+      await pollModelStatus(response.taskId);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '上传或生成失败,请重试');
+      const errorMsg = err instanceof Error ? err.message : '上传或生成失败,请重试';
+      setError(errorMsg);
+      Toast.error(errorMsg);
       setProgress('');
     } finally {
       setLoading(false);
@@ -73,15 +78,15 @@ export default function GenerationPage() {
       const model = await modelApi.getModel(id);
       
       if (model.status === 'completed') {
-        if (model.file_path) {
-          setModelUrl(model.file_path);
+        if (model.filePath) {
+          setModelUrl(model.filePath);
           setShowPreview(true);
           setProgress('模型生成成功!');
         } else {
           throw new Error('模型文件路径不存在');
         }
       } else if (model.status === 'failed') {
-        throw new Error(model.error_message || '模型生成失败');
+        throw new Error(model.errorMessage || '模型生成失败');
       } else {
         setProgress(`生成进度: ${attempts * 2}%`);
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -105,8 +110,11 @@ export default function GenerationPage() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      Toast.success('模型下载成功!');
     } catch (err) {
-      setError('下载失败,请重试');
+      const errorMsg = '下载失败,请重试';
+      setError(errorMsg);
+      Toast.error(errorMsg);
     }
   };
 
@@ -114,107 +122,96 @@ export default function GenerationPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-4">
+          <Title heading={1} className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-4">
             AI 3D 模型生成器
-          </h1>
-          <p className="text-xl text-gray-600">
+          </Title>
+          <Paragraph className="text-xl text-gray-600">
             使用文本描述或照片,轻松创建专属 3D 模型
-          </p>
+          </Paragraph>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <div className="mb-6">
-              <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-                <button
-                  onClick={() => setActiveTab('text')}
-                  className={`flex-1 py-3 px-4 rounded-md font-medium transition-all duration-200 ${
-                    activeTab === 'text'
-                      ? 'bg-white text-blue-600 shadow-md'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  <span className="flex items-center justify-center">
-                    <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    文本生成
-                  </span>
-                </button>
-                <button
-                  onClick={() => setActiveTab('image')}
-                  className={`flex-1 py-3 px-4 rounded-md font-medium transition-all duration-200 ${
-                    activeTab === 'image'
-                      ? 'bg-white text-blue-600 shadow-md'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  <span className="flex items-center justify-center">
-                    <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    图片生成
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              {activeTab === 'text' ? (
-                <div className="space-y-4">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-blue-800">
-                      💡 <strong>提示:</strong> 详细描述模型的形状、大小和特征,例如 "一个带把手的圆形咖啡杯,高度10厘米"
-                    </p>
-                  </div>
+          <Card className="rounded-2xl shadow-xl" bodyStyle={{ padding: 32 }}>
+            <Tabs 
+              type="button" 
+              activeKey={activeTab} 
+              onChange={setActiveTab}
+              style={{ marginBottom: 24 }}
+            >
+              <TabPane 
+                tab={
+                  <Space>
+                    <IconEdit />
+                    <span>文本生成</span>
+                  </Space>
+                } 
+                itemKey="text"
+              >
+                <Space vertical align="start" spacing="medium" style={{ width: '100%' }}>
+                  <Banner
+                    type="info"
+                    icon={null}
+                    description="详细描述模型的形状、大小和特征,例如 '一个带把手的圆形咖啡杯,高度10厘米'"
+                  />
                   <TextInput onGenerate={handleTextGenerate} loading={loading} />
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                    <p className="text-sm text-purple-800">
-                      💡 <strong>提示:</strong> 上传清晰的物体照片,多角度照片效果更好
-                    </p>
-                  </div>
+                </Space>
+              </TabPane>
+              <TabPane 
+                tab={
+                  <Space>
+                    <IconImage />
+                    <span>图片生成</span>
+                  </Space>
+                } 
+                itemKey="image"
+              >
+                <Space vertical align="start" spacing="medium" style={{ width: '100%' }}>
+                  <Banner
+                    type="info"
+                    icon={null}
+                    description="上传清晰的物体照片,多角度照片效果更好"
+                  />
                   <ImageUpload onUpload={handleImageUpload} loading={loading} />
-                </div>
-              )}
-            </div>
+                </Space>
+              </TabPane>
+            </Tabs>
 
             {error && (
-              <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
-                <div className="flex items-start">
-                  <svg className="w-5 h-5 text-red-500 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-sm text-red-700">{error}</p>
-                </div>
-              </div>
+              <Banner
+                type="danger"
+                description={error}
+                style={{ marginTop: 24 }}
+                closeIcon={null}
+              />
             )}
 
             {loading && progress && (
-              <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-center">
-                  <Loading size="sm" />
-                  <p className="ml-3 text-sm text-blue-700 font-medium">{progress}</p>
-                </div>
-              </div>
+              <Banner
+                type="info"
+                description={
+                  <Space>
+                    <Spin />
+                    <Text>{progress}</Text>
+                  </Space>
+                }
+                style={{ marginTop: 24 }}
+                closeIcon={null}
+              />
             )}
-          </div>
+          </Card>
 
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+          <Card className="rounded-2xl shadow-xl" bodyStyle={{ padding: 32 }}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-gray-900">3D 预览</h3>
+              <Title heading={3}>3D 预览</Title>
               {showPreview && modelId && (
-                <button
+                <Button
+                  type="primary"
+                  icon={<IconDownload />}
                   onClick={handleDownloadModel}
-                  className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                  theme="solid"
                 >
-                  <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
                   下载模型
-                </button>
+                </Button>
               )}
             </div>
 
@@ -251,11 +248,11 @@ export default function GenerationPage() {
                 </div>
               </div>
             )}
-          </div>
+          </Card>
         </div>
 
-        <div className="mt-12 bg-white rounded-2xl shadow-lg p-8">
-          <h3 className="text-2xl font-bold text-gray-900 mb-6">功能特点</h3>
+        <Card className="mt-12 rounded-2xl shadow-lg" bodyStyle={{ padding: 32 }}>
+          <Title heading={3} style={{ marginBottom: 24 }}>功能特点</Title>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="flex items-start">
               <div className="flex-shrink-0 bg-blue-100 rounded-lg p-3">
@@ -264,8 +261,8 @@ export default function GenerationPage() {
                 </svg>
               </div>
               <div className="ml-4">
-                <h4 className="text-lg font-semibold text-gray-900">AI 驱动</h4>
-                <p className="mt-1 text-sm text-gray-600">使用先进的 AI 技术,快速生成高质量 3D 模型</p>
+                <Title heading={4} style={{ margin: 0 }}>AI 驱动</Title>
+                <Paragraph style={{ margin: '4px 0 0 0' }}>使用先进的 AI 技术,快速生成高质量 3D 模型</Paragraph>
               </div>
             </div>
 
@@ -276,8 +273,8 @@ export default function GenerationPage() {
                 </svg>
               </div>
               <div className="ml-4">
-                <h4 className="text-lg font-semibold text-gray-900">简单易用</h4>
-                <p className="mt-1 text-sm text-gray-600">无需专业知识,输入描述或上传图片即可开始</p>
+                <Title heading={4} style={{ margin: 0 }}>简单易用</Title>
+                <Paragraph style={{ margin: '4px 0 0 0' }}>无需专业知识,输入描述或上传图片即可开始</Paragraph>
               </div>
             </div>
 
@@ -288,12 +285,12 @@ export default function GenerationPage() {
                 </svg>
               </div>
               <div className="ml-4">
-                <h4 className="text-lg font-semibold text-gray-900">即时下载</h4>
-                <p className="mt-1 text-sm text-gray-600">生成后可立即下载 STL 格式,用于 3D 打印</p>
+                <Title heading={4} style={{ margin: 0 }}>即时下载</Title>
+                <Paragraph style={{ margin: '4px 0 0 0' }}>生成后可立即下载 STL 格式,用于 3D 打印</Paragraph>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );
