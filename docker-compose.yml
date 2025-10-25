@@ -22,8 +22,11 @@ services:
       - TEMP_FILE_TTL_HOURS=${TEMP_FILE_TTL_HOURS:-24}
       - MAX_UPLOAD_SIZE_MB=${MAX_UPLOAD_SIZE_MB:-10}
       - MESHY_API_KEY=${MESHY_API_KEY:-}
-      - MESHY_API_URL=${MESHY_API_URL:-https://api.meshy.ai}
-      - MODEL_GENERATION_TIMEOUT=${MODEL_GENERATION_TIMEOUT:-300}
+      - MESHY_BASE_URL=${MESHY_BASE_URL:-https://api.meshy.ai}
+      - MESHY_TIMEOUT=${MESHY_TIMEOUT:-300}
+      - MESHY_MAX_RETRIES=${MESHY_MAX_RETRIES:-3}
+      - MESHY_DEFAULT_MODEL=${MESHY_DEFAULT_MODEL:-meshy-5}
+      - MESHY_MOCK_MODE=${MESHY_MOCK_MODE:-false}
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost}
       - PYTHONPATH=/app/src
       - PYTHONUNBUFFERED=1
@@ -117,8 +120,11 @@ services:
       - STORAGE_BACKEND=${STORAGE_BACKEND:-local}
       - STORAGE_LOCAL_PATH=/app/data
       - MESHY_API_KEY=${MESHY_API_KEY:-}
-      - MESHY_API_URL=${MESHY_API_URL:-https://api.meshy.ai}
-      - MODEL_GENERATION_TIMEOUT=${MODEL_GENERATION_TIMEOUT:-300}
+      - MESHY_BASE_URL=${MESHY_BASE_URL:-https://api.meshy.ai}
+      - MESHY_TIMEOUT=${MESHY_TIMEOUT:-300}
+      - MESHY_MAX_RETRIES=${MESHY_MAX_RETRIES:-3}
+      - MESHY_DEFAULT_MODEL=${MESHY_DEFAULT_MODEL:-meshy-5}
+      - MESHY_MOCK_MODE=${MESHY_MOCK_MODE:-false}
       - PYTHONPATH=/app/src
       - PYTHONUNBUFFERED=1
     volumes:

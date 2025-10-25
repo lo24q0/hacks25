@@ -50,6 +50,8 @@
   - [x] 实现文本转 3D 模型服务 (TextTo3DService)
   - [x] 实现图片转 3D 模型服务 (ImageTo3DService)
   - [x] 实现统一模型生成器 (MeshyModelGenerator)
+  - [x] 实现异步任务 (infrastructure/tasks/model_tasks.py) (#60, 2025-10-25)
+  - [x] 添加 Mock 模式配置 (#60, 2025-10-25)
   - [ ] 文件格式转换 (转 STL)
   - [ ] 模型元数据提取
 
@@ -91,7 +93,7 @@
   - [x] 实现测试任务(delayed_return)
   - [x] 任务状态查询接口
   - [x] Docker Compose 添加 Celery Worker 服务
-  - [ ] 实现模型生成异步任务
+  - [x] 实现模型生成异步任务 (#60, 2025-10-25)
   - [ ] 前端轮询机制
 
 - [x] **开发工具配置** (#39, 2025-10-24)
