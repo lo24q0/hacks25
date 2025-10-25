@@ -1,0 +1,17 @@
+# 腾讯云图像风格化 API 依赖
+
+# 腾讯云 SDK (推荐使用完整版或只安装 aiart 模块)
+tencentcloud-sdk-python>=3.0.1000
+# 或者只安装 aiart 模块:
+# tencentcloud-sdk-python-aiart>=3.0.1000
+
+# 图像处理相关
+Pillow>=10.0.0  # 图片压缩和格式转换
+
+# 异步任务处理(可选)
+celery>=5.3.0
+redis>=5.0.0
+
+# 其他工具库
+python-dotenv>=1.0.0  # 环境变量管理
+requests>=2.31.0      # HTTP 请求
