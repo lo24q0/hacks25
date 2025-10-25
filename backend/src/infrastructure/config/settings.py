@@ -110,6 +110,22 @@ class Settings(BaseSettings):
         description="是否打印SQL语句"
     )
 
+    tencent_cloud_secret_id: str = Field(
+        default="", description="腾讯云 API SecretId"
+    )
+    tencent_cloud_secret_key: str = Field(
+        default="", description="腾讯云 API SecretKey"
+    )
+    tencent_cloud_region: str = Field(
+        default="ap-guangzhou", description="腾讯云地域"
+    )
+    style_transfer_timeout: int = Field(
+        default=30, description="风格化任务超时时间(秒)"
+    )
+    style_transfer_max_retries: int = Field(
+        default=3, description="风格化任务最大重试次数"
+    )
+
     @property
     def redis_url(self) -> str:
         """
