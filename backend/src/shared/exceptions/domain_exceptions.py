@@ -55,3 +55,27 @@ class BusinessRuleViolationError(DomainException):
     def __init__(self, message: str, rule_name: str | None = None):
         super().__init__(message, error_code="BUSINESS_RULE_VIOLATION")
         self.rule_name = rule_name
+
+
+class InvalidStateError(DomainException):
+    """
+    Exception raised when an operation is attempted on an entity in an invalid state.
+
+    Args:
+        message (str): Error message describing the invalid state.
+    """
+
+    def __init__(self, message: str):
+        super().__init__(message, error_code="INVALID_STATE")
+
+
+class PrinterBusyError(DomainException):
+    """
+    Exception raised when a printer is busy and cannot accept a new task.
+
+    Args:
+        message (str): Error message describing the printer busy state.
+    """
+
+    def __init__(self, message: str):
+        super().__init__(message, error_code="PRINTER_BUSY")
