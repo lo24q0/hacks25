@@ -31,13 +31,14 @@ class TencentCloudStyleTransfer:
     支持多种风格转换，包括动漫、卡通、素描等。
     """
 
-    # 风格类型映射 (根据腾讯云文档)
+    # 风格类型映射 (根据腾讯云 API)
+    # 注意：API 使用 Styles 参数（字符串数组），而不是 StyleId
     STYLE_TYPES = {
-        "anime": 201,      # 动漫风格
-        "cartoon": 202,    # 3D卡通
-        "sketch": 203,     # 素描风格
-        "watercolor": 204, # 水彩画
-        "oil_painting": 205, # 油画风格
+        "anime": "201",      # 动漫风格
+        "cartoon_3d": "202", # 3D卡通
+        "sketch": "203",     # 素描风格
+        "watercolor": "204", # 水彩画
+        "oil_painting": "205", # 油画风格
     }
 
     def __init__(self, secret_id: str, secret_key: str, region: str = "ap-guangzhou"):
@@ -123,8 +124,9 @@ class TencentCloudStyleTransfer:
             image_base64 = self.image_to_base64(image_path)
             req.InputImage = image_base64
 
-            # 风格类型
-            req.StyleId = self.STYLE_TYPES[style_type]
+            # 风格类型 - 使用 Styles 参数（字符串数组）
+            # 注意：腾讯云 API 已更新，使用 Styles 而不是 StyleId
+            req.Styles = [self.STYLE_TYPES[style_type]]
 
             # 其他可选参数
             # req.Strength = 80  # 风格强度 0-100,默认80

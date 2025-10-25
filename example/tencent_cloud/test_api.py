@@ -76,7 +76,18 @@ def check_test_image():
     print("🖼️  步骤 3: 检查测试图片")
     print("=" * 60)
 
-    test_image = Path(__file__).parent / "test_input.jpg"
+    # 尝试多个可能的文件名
+    possible_names = ["test_image.jpg", "test_input.jpg", "test.jpg"]
+    test_image = None
+
+    for name in possible_names:
+        path = Path(__file__).parent / name
+        if path.exists():
+            test_image = path
+            break
+
+    if test_image is None:
+        test_image = Path(__file__).parent / "test_input.jpg"  # 默认使用这个名字
 
     if not test_image.exists():
         print(f"⚠️  警告：找不到测试图片")
@@ -108,6 +119,19 @@ def test_api():
     try:
         from image_style_transfer_example import TencentCloudStyleTransfer
 
+        # 查找测试图片
+        possible_names = ["test_image.jpg", "test_input.jpg", "test.jpg"]
+        input_image = None
+
+        for name in possible_names:
+            path = Path(__file__).parent / name
+            if path.exists():
+                input_image = name
+                break
+
+        if input_image is None:
+            input_image = "test_input.jpg"  # 默认
+
         # 加载环境变量
         secret_id = os.getenv("TENCENT_CLOUD_SECRET_ID")
         secret_key = os.getenv("TENCENT_CLOUD_SECRET_KEY")
@@ -122,13 +146,13 @@ def test_api():
 
         # 测试风格转换
         print("\n🎨 开始测试图片风格化...")
-        print("   输入图片: test_input.jpg")
+        print(f"   输入图片: {input_image}")
         print("   风格类型: anime (动漫风格)")
         print("   输出图片: test_output_anime.jpg")
         print("\n   ⏳ 处理中，预计需要 10-30 秒...")
 
         result = client.transfer_style(
-            image_path="test_input.jpg",
+            image_path=input_image,
             style_type="anime",
             output_path="test_output_anime.jpg",
         )
