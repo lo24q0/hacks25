@@ -100,6 +100,15 @@ class Settings(BaseSettings):
     meshy_default_model: str = Field(
         default="meshy-5", description="Meshy AI 默认模型版本"
     )
+    
+    DATABASE_URL: str = Field(
+        default="sqlite+aiosqlite:///./data/app.db",
+        description="数据库连接URL"
+    )
+    DATABASE_ECHO: bool = Field(
+        default=False,
+        description="是否打印SQL语句"
+    )
 
     @property
     def redis_url(self) -> str:
@@ -118,3 +127,14 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def get_settings() -> Settings:
+    """
+    获取全局配置实例
+    
+    Returns:
+        Settings: 配置对象
+    """
+    return settings
+

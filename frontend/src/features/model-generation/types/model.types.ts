@@ -21,37 +21,55 @@ export interface ModelMetadata {
     z: number
   }
   volume?: number
-  triangleCount?: number
-  vertexCount?: number
-  isManifold?: boolean
+  triangle_count?: number
+  vertex_count?: number
+  is_manifold?: boolean
+  bounding_box?: {
+    min_point: [number, number, number]
+    max_point: [number, number, number]
+  }
 }
 
 export interface Model3D {
   id: string
-  sourceType: SourceType
-  sourceData: {
-    textPrompt?: string
-    imagePaths?: string[]
-    stylePreset?: string
-  }
+  source_type: SourceType
   status: ModelStatus
-  filePath?: string
-  thumbnailPath?: string
+  file_path?: string
+  thumbnail_path?: string
   metadata?: ModelMetadata
-  errorMessage?: string
-  createdAt: string
-  updatedAt: string
+  error_message?: string
+  celery_task_id?: string
+  model_files?: {
+    glb?: string
+    obj?: string
+    fbx?: string
+    mtl?: string
+  }
+  created_at: string
+  updated_at: string
 }
 
 export interface GenerateModelRequest {
-  sourceType: SourceType
-  textPrompt?: string
-  imagePaths?: string[]
-  stylePreset?: string
+  prompt?: string
+  image_paths?: string[]
+  style_preset?: string
 }
 
 export interface GenerateModelResponse {
-  taskId: string
+  id: string
+  source_type: SourceType
   status: ModelStatus
-  model?: Model3D
+  file_path?: string
+  thumbnail_path?: string
+  metadata?: ModelMetadata
+  error_message?: string
+  celery_task_id?: string
+  model_files?: {
+    glb?: string
+    obj?: string
+    fbx?: string
+    mtl?: string
+  }
+  created_at: string
+  updated_at: string
 }

@@ -1,32 +1,31 @@
 """
-打印任务SQLAlchemy模型
+打印任务数据库模型
 """
+
 from datetime import datetime, timedelta
 from typing import Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import Column, String, Integer, Float, DateTime, Enum as SQLEnum, JSON, Interval
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+from sqlalchemy import Column, String, Integer, Float, DateTime, Enum as SQLEnum, JSON, Interval, Text
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.types import TypeDecorator, CHAR
 
-from domain.enums.print_enums import TaskStatus
 from infrastructure.persistence.database import Base
+from domain.enums.print_enums import TaskStatus
 
 
 class GUID(TypeDecorator):
     """
-    跨数据库的UUID类型
-    
-    在PostgreSQL使用UUID类型,其他数据库使用CHAR(36)
+    UUID类型适配器,兼容SQLite和PostgreSQL
     """
     impl = CHAR
     cache_ok = True
 
     def load_dialect_impl(self, dialect):
         if dialect.name == 'postgresql':
-            return dialect.type_descriptor(PG_UUID())
+            return dialect.type_descriptor(PGUUID())
         else:
-            return dialect.type_descriptor(CHAR(36))
+            return dialect.type_descriptor(CHAR(32))
 
     def process_bind_param(self, value, dialect):
         if value is None:
@@ -34,28 +33,34 @@ class GUID(TypeDecorator):
         elif dialect.name == 'postgresql':
             return str(value)
         else:
-            if not isinstance(value, UUID):
-                return str(UUID(value))
-            return str(value)
+            if isinstance(value, UUID):
+                return value.hex
+            else:
+                return UUID(value).hex
 
     def process_result_value(self, value, dialect):
         if value is None:
             return value
-        if not isinstance(value, UUID):
-            return UUID(value)
-        return value
+        else:
+            if isinstance(value, UUID):
+                return value
+            else:
+                if dialect.name == 'postgresql':
+                    return UUID(value)
+                else:
+                    return UUID(value)
 
 
 class PrintTaskModel(Base):
     """
     打印任务数据库模型
     
-    对应domain.models.print_task.PrintTask聚合根
+    对应领域模型: domain.models.print_task.PrintTask
     """
-    __tablename__ = 'print_tasks'
+    __tablename__ = "print_tasks"
 
-    id = Column(GUID(), primary_key=True, default=uuid4)
-    model_id = Column(GUID(), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=uuid4)
+    model_id = Column(GUID, nullable=False, index=True)
     printer_id = Column(String(100), nullable=False, index=True)
     
     status = Column(
@@ -67,29 +72,22 @@ class PrintTaskModel(Base):
     
     queue_position = Column(Integer, nullable=True)
     
-    # 切片配置(存储为JSON)
     slicing_config = Column(JSON, nullable=False)
     
-    # 文件路径
     gcode_path = Column(String(500), nullable=True)
     
-    # 预估信息
     estimated_time = Column(Interval, nullable=True)
     estimated_material = Column(Float, nullable=True)
     
-    # 实际执行时间
     actual_start_time = Column(DateTime, nullable=True)
     actual_end_time = Column(DateTime, nullable=True)
     
-    # 进度
     progress = Column(Integer, default=0, nullable=False)
     
-    # 错误信息
-    error_message = Column(String(1000), nullable=True)
+    error_message = Column(Text, nullable=True)
     
-    # 时间戳
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def to_domain_model(self) -> 'PrintTask':
         """
@@ -101,7 +99,6 @@ class PrintTaskModel(Base):
         from domain.models.print_task import PrintTask
         from domain.value_objects.slicing_config import SlicingConfig
         
-        # 重建切片配置
         slicing_config = SlicingConfig(**self.slicing_config)
         
         return PrintTask(
@@ -171,3 +168,7 @@ class PrintTaskModel(Base):
         self.progress = task.progress
         self.error_message = task.error_message
         self.updated_at = task.updated_at
+
+    def __repr__(self) -> str:
+        """字符串表示"""
+        return f"<PrintTaskModel(id={self.id}, status={self.status})>"

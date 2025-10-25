@@ -15,7 +15,7 @@ export default function GenerationPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [modelId, setModelId] = useState<string | null>(null);
+  const [currentModelId, setCurrentModelId] = useState<string | null>(null);
   const [progress, setProgress] = useState<string>('');
 
   const handleTextGenerate = async (text: string) => {
@@ -25,10 +25,14 @@ export default function GenerationPage() {
     
     try {
       const response = await modelApi.generateFromText(text);
-      setModelId(response.taskId);
+      setCurrentModelId(response.id);
       setProgress('模型生成中,请稍候...');
       
-      await pollModelStatus(response.taskId);
+      if (response.celery_task_id) {
+        await pollTaskStatus(response.celery_task_id, response.id);
+      } else {
+        throw new Error('未获取到任务ID');
+      }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : '生成失败,请重试';
       setError(errorMsg);
@@ -51,10 +55,14 @@ export default function GenerationPage() {
       setProgress('图片上传成功,正在生成 3D 模型...');
       
       const response = await modelApi.generateFromImage(imagePaths);
-      setModelId(response.taskId);
+      setCurrentModelId(response.id);
       setProgress('模型生成中,请稍候...');
       
-      await pollModelStatus(response.taskId);
+      if (response.celery_task_id) {
+        await pollTaskStatus(response.celery_task_id, response.id);
+      } else {
+        throw new Error('未获取到任务ID');
+      }
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : '上传或生成失败,请重试';
       setError(errorMsg);
@@ -65,7 +73,7 @@ export default function GenerationPage() {
     }
   };
 
-  const pollModelStatus = async (id: string) => {
+  const pollTaskStatus = async (taskId: string, modelId: string) => {
     const maxAttempts = 60;
     let attempts = 0;
     
@@ -75,20 +83,29 @@ export default function GenerationPage() {
       }
       
       attempts++;
-      const model = await modelApi.getModel(id);
+      const taskStatus = await modelApi.getTaskStatus(taskId);
       
-      if (model.status === 'completed') {
-        if (model.filePath) {
-          setModelUrl(model.filePath);
+      if (taskStatus.state === 'SUCCESS') {
+        if (taskStatus.result?.model_files?.glb) {
+          setModelUrl(taskStatus.result.model_files.glb);
+          setShowPreview(true);
+          setProgress('模型生成成功!');
+        } else if (taskStatus.result?.file_path) {
+          setModelUrl(taskStatus.result.file_path);
           setShowPreview(true);
           setProgress('模型生成成功!');
         } else {
           throw new Error('模型文件路径不存在');
         }
-      } else if (model.status === 'failed') {
-        throw new Error(model.errorMessage || '模型生成失败');
+      } else if (taskStatus.state === 'FAILURE') {
+        throw new Error(taskStatus.error || '模型生成失败');
+      } else if (taskStatus.state === 'PROGRESS') {
+        const progressInfo = taskStatus.info?.progress || attempts * 2;
+        setProgress(`生成进度: ${Math.min(progressInfo, 99)}%`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return poll();
       } else {
-        setProgress(`生成进度: ${attempts * 2}%`);
+        setProgress(`任务状态: ${taskStatus.state}`);
         await new Promise(resolve => setTimeout(resolve, 2000));
         return poll();
       }
@@ -98,14 +115,14 @@ export default function GenerationPage() {
   };
 
   const handleDownloadModel = async () => {
-    if (!modelId) return;
+    if (!currentModelId) return;
     
     try {
-      const blob = await modelApi.downloadModel(modelId);
+      const blob = await modelApi.downloadModel(currentModelId);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `model_${modelId}.stl`;
+      a.download = `model_${currentModelId}.stl`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -203,7 +220,7 @@ export default function GenerationPage() {
           <Card className="rounded-2xl shadow-xl" bodyStyle={{ padding: 32 }}>
             <div className="flex items-center justify-between mb-6">
               <Title heading={3}>3D 预览</Title>
-              {showPreview && modelId && (
+              {showPreview && currentModelId && (
                 <Button
                   type="primary"
                   icon={<IconDownload />}

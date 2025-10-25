@@ -3,7 +3,7 @@ from uuid import UUID
 from typing import List
 from fastapi import APIRouter, HTTPException, Depends
 
-from api.v1.schemas.print import (
+from src.api.v1.schemas.print import (
     CreatePrintTaskRequest,
     PrintTaskResponse,
     RegisterPrinterRequest,
@@ -11,11 +11,11 @@ from api.v1.schemas.print import (
     QueueStatusResponse,
     PrintTaskSummary
 )
-from application.services.print_service import PrintService
-from domain.models.printer import Printer
-from infrastructure.printer.adapters.bambu_adapter import BambuAdapter
-from infrastructure.printer.queue.queue_manager import QueueManager
-from domain.enums.print_enums import AdapterType
+from src.application.services.print_service import PrintService
+from src.domain.models.printer import Printer
+from src.infrastructure.printer.adapters.bambu_adapter import BambuAdapter
+from src.infrastructure.printer.queue.queue_manager import QueueManager
+from src.domain.enums.print_enums import AdapterType
 
 logger = logging.getLogger(__name__)
 
