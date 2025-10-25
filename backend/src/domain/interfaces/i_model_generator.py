@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any, Dict
 from typing import Optional
 
 from ..models.model3d import Model3D
@@ -51,7 +52,7 @@ class IModelGenerator(ABC):
         pass
 
     @abstractmethod
-    async def get_generation_status(self, task_id: str) -> dict:
+    async def get_generation_status(self, task_id: str) -> Dict[str, Any]:
         """
         获取生成任务状态。
 
