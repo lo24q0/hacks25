@@ -3,8 +3,8 @@ import { Button, TextArea, Toast, Tag, Space, Tooltip } from '@douyinfe/semi-ui'
 import { IconMagic, IconBulb } from '@douyinfe/semi-icons';
 
 interface TextInputProps {
-  onGenerate: (text: string) => void;
-  loading?: boolean;
+  onGenerate: (text: string) => void
+  loading?: boolean
 }
 
 const EXAMPLE_PROMPTS = [
@@ -20,13 +20,13 @@ const TextInput: React.FC<TextInputProps> = ({ onGenerate, loading = false }) =>
   const [showExamples, setShowExamples] = useState(true);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (text.trim() && text.length >= 10) {
       onGenerate(text);
     } else {
       Toast.warning('描述长度应在 10-1000 字符之间');
     }
-  };
+  }
 
   const handleExampleClick = (example: string) => {
     setText(example);
@@ -125,7 +125,7 @@ const TextInput: React.FC<TextInputProps> = ({ onGenerate, loading = false }) =>
         </div>
       )}
     </form>
-  );
-};
+  )
+}
 
-export default TextInput;
+export default TextInput

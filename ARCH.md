@@ -88,7 +88,7 @@
 |---------|------|---------|------|
 | 文本转3D | Meshy.ai API | Shap-E (OpenAI) | API稳定，效果好 |
 | 图片转3D | Meshy.ai API | TripoSR (Stability AI) | 单张图片即可生成 |
-| 风格化 | AnimeGANv3 | CartoonGAN | 动漫风格效果最佳 |
+| 风格化 | 腾讯云图像风格化 API | AnimeGANv3 (本地部署) | 支持动漫、卡通、素描等5种风格，无需 GPU |
 | 切片引擎 | CuraEngine | PrusaSlicer CLI | 拓竹官方推荐 |
 
 ### 2.4 开发和部署工具
@@ -130,18 +130,28 @@
 #### 3.1.2 风格化处理域（Style Processing Domain）
 
 **职责**：
-- 图片风格迁移
+
+- 图片风格迁移（调用腾讯云图像风格化 API）
 - 风格预设管理
 - 风格化效果预览
 
 **核心实体**：
+
 - `StyleTask`：风格化任务
-- `StylePreset`：风格预设
+- `StylePreset`：风格预设（映射到腾讯云 StyleId）
 - `StyledImage`：风格化后的图片
 
 **对外接口**：
-- `IStyleTransfer`：风格迁移接口
+
+- `IStyleEngine`：风格引擎接口（抽象腾讯云 API 调用）
 - `IStylePresetRepository`：风格预设仓储
+
+**技术实现**：
+
+- 使用腾讯云智能创作引擎的图像风格化能力
+- SDK：`tencentcloud-sdk-python-aiart`
+- 支持 5 种预设风格：动漫、3D卡通、素描、水彩画、油画
+- 详细文档：`example/tencent_cloud/README.md`
 
 #### 3.1.3 打印适配域（Print Adaptation Domain）
 

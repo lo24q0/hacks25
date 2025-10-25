@@ -1,15 +1,15 @@
-import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
+import { create } from 'zustand'
+import { devtools, persist } from 'zustand/middleware'
 
 interface AppState {
-  isLoading: boolean;
-  theme: 'light' | 'dark';
-  sidebarOpen: boolean;
-  
-  setIsLoading: (loading: boolean) => void;
-  setTheme: (theme: 'light' | 'dark') => void;
-  toggleSidebar: () => void;
-  setSidebarOpen: (open: boolean) => void;
+  isLoading: boolean
+  theme: 'light' | 'dark'
+  sidebarOpen: boolean
+
+  setIsLoading: (loading: boolean) => void
+  setTheme: (theme: 'light' | 'dark') => void
+  toggleSidebar: () => void
+  setSidebarOpen: (open: boolean) => void
 }
 
 export const useAppStore = create<AppState>()(
@@ -19,7 +19,7 @@ export const useAppStore = create<AppState>()(
         isLoading: false,
         theme: 'light',
         sidebarOpen: true,
-        
+
         setIsLoading: (loading) => set({ isLoading: loading }),
         setTheme: (theme) => set({ theme }),
         toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
@@ -34,4 +34,4 @@ export const useAppStore = create<AppState>()(
       }
     )
   )
-);
+)

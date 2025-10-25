@@ -104,6 +104,19 @@
 
 ### P1 - 增强功能
 
+- [ ] **图片风格化处理** (#待分配, 2025-10-25)
+  - [x] 创建腾讯云 API 示例代码和文档 (example/tencent_cloud/)
+  - [x] 更新 ARCH.md 和 INITIAL.md 技术选型
+  - [x] 更新 IStyleEngine 接口定义
+  - [x] 创建完整的风格化 API 设计文档 (docs/API_STYLE.md)
+  - [ ] 实现腾讯云风格化客户端 (infrastructure/ai/tencent_style.py)
+  - [ ] 实现风格化应用服务 (application/services/style_service.py)
+  - [ ] 实现风格化 API 路由 (api/v1/routers/styles.py)
+  - [ ] 实现风格化 Celery 任务 (infrastructure/tasks/style_tasks.py)
+  - [ ] 前端风格选择器组件
+  - [ ] 前端风格化预览功能
+  - [ ] 集成测试和 API 测试
+
 - [ ] **打印适配功能**
   - [ ] 集成 CuraEngine
   - [ ] 实现模型切片接口
@@ -124,11 +137,6 @@
 
 ### P2 - 高级功能
 
-- [ ] **风格化处理**
-  - [ ] AnimeGAN 模型集成
-  - [ ] 图片风格迁移接口
-  - [ ] 风格预设管理
-
 - [ ] **模型编辑**
   - [ ] 基础模型修复
   - [ ] 尺寸调整
@@ -140,6 +148,14 @@
 
 ## 已完成任务
 
+- [x] 2025-10-25: 图片风格化模块设计文档补充
+  - 创建腾讯云图像风格化 API 示例代码 (example/tencent_cloud/)
+  - 创建风格预设映射配置文件 (style_presets_mapping.json)
+  - 编写完整的腾讯云 API 使用文档 (example/tencent_cloud/README.md)
+  - 更新 ARCH.md 和 INITIAL.md 中的技术选型
+  - 增强 IStyleEngine 接口以支持腾讯云 API
+  - 创建完整的风格化 API 设计文档 (docs/API_STYLE.md)
+  - 添加腾讯云 SDK 依赖到 requirements.txt
 - [x] 2025-10-24: 添加项目开发规范文档 (CLAUDE.md)
 - [x] 2025-10-24: 添加技术架构设计文档 (ARCH.md)
 - [x] 2025-10-24: 添加 .gitignore 配置

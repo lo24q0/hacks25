@@ -11,6 +11,7 @@ class ModelStatus(Enum):
         COMPLETED: 生成完成
         FAILED: 生成失败
     """
+
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
@@ -28,6 +29,7 @@ class TaskStatus(Enum):
         FAILED: 失败
         CANCELLED: 已取消
     """
+
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"

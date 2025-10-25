@@ -12,6 +12,7 @@ class Dimensions:
         y (float): Y轴尺寸(毫米)
         z (float): Z轴尺寸(毫米)
     """
+
     x: float
     y: float
     z: float
@@ -30,13 +31,14 @@ class BoundingBox:
         min_point (Tuple[float, float, float]): 最小点坐标(x, y, z)
         max_point (Tuple[float, float, float]): 最大点坐标(x, y, z)
     """
+
     min_point: Tuple[float, float, float]
     max_point: Tuple[float, float, float]
 
     def __post_init__(self) -> None:
         if len(self.min_point) != 3 or len(self.max_point) != 3:
             raise ValueError("Points must have exactly 3 coordinates")
-        
+
         for i in range(3):
             if self.min_point[i] > self.max_point[i]:
                 raise ValueError(f"min_point[{i}] must be <= max_point[{i}]")
@@ -68,6 +70,7 @@ class ModelMetadata:
         is_manifold (bool): 是否为流形网格(可打印)
         bounding_box (BoundingBox): 包围盒
     """
+
     dimensions: Dimensions
     volume: float
     triangle_count: int

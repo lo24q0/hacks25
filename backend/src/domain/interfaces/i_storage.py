@@ -22,6 +22,7 @@ class FileObject:
         ttl (Optional[timedelta]): 生存时间
         created_at (datetime): 创建时间
     """
+
     id: UUID
     object_key: str
     original_filename: str
@@ -55,7 +56,7 @@ class FileObject:
         """
         if self.ttl is None:
             return False
-        
+
         expiry_time = self.created_at + self.ttl
         return current_time >= expiry_time
 
@@ -69,11 +70,7 @@ class IStorageService(ABC):
 
     @abstractmethod
     async def upload_file(
-        self,
-        file_content: bytes,
-        filename: str,
-        content_type: str,
-        ttl: Optional[timedelta] = None
+        self, file_content: bytes, filename: str, content_type: str, ttl: Optional[timedelta] = None
     ) -> FileObject:
         """
         上传文件。

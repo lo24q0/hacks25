@@ -1,8 +1,7 @@
 from datetime import datetime
-from typing import Optional
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, HTTPException, Path, Query
+from fastapi import APIRouter, Path, Query
 
 from ..schemas.model import (
     BoundingBoxResponse,
@@ -21,7 +20,7 @@ router = APIRouter(prefix="/models", tags=["models"])
     "/generate/text",
     response_model=ModelResponse,
     summary="文本转3D模型",
-    description="根据文本描述生成3D模型(P0 MVP - 返回mock数据)"
+    description="根据文本描述生成3D模型(P0 MVP - 返回mock数据)",
 )
 async def generate_from_text(request: TextGenerationRequest) -> ModelResponse:
     """
@@ -53,7 +52,7 @@ async def generate_from_text(request: TextGenerationRequest) -> ModelResponse:
     "/generate/image",
     response_model=ModelResponse,
     summary="图片转3D模型",
-    description="根据图片生成3D模型(P1功能 - 返回mock数据)"
+    description="根据图片生成3D模型(P1功能 - 返回mock数据)",
 )
 async def generate_from_image(request: ImageGenerationRequest) -> ModelResponse:
     """
@@ -85,11 +84,9 @@ async def generate_from_image(request: ImageGenerationRequest) -> ModelResponse:
     "/{model_id}",
     response_model=ModelResponse,
     summary="获取模型信息",
-    description="根据ID获取3D模型的详细信息(返回mock数据)"
+    description="根据ID获取3D模型的详细信息(返回mock数据)",
 )
-async def get_model(
-    model_id: UUID = Path(..., description="模型ID")
-) -> ModelResponse:
+async def get_model(model_id: UUID = Path(..., description="模型ID")) -> ModelResponse:
     """
     获取指定ID的3D模型信息。
 
@@ -103,17 +100,14 @@ async def get_model(
         HTTPException: 模型不存在时返回404
     """
     now = datetime.utcnow()
-    
+
     mock_metadata = ModelMetadataResponse(
         dimensions=DimensionsResponse(x=100.0, y=100.0, z=50.0),
         volume=50000.0,
         triangle_count=1024,
         vertex_count=512,
         is_manifold=True,
-        bounding_box=BoundingBoxResponse(
-            min_point=(0.0, 0.0, 0.0),
-            max_point=(100.0, 100.0, 50.0)
-        )
+        bounding_box=BoundingBoxResponse(min_point=(0.0, 0.0, 0.0), max_point=(100.0, 100.0, 50.0)),
     )
 
     return ModelResponse(
@@ -133,11 +127,11 @@ async def get_model(
     "/",
     response_model=ModelListResponse,
     summary="获取模型列表",
-    description="获取用户的模型列表(P2功能 - 返回mock数据)"
+    description="获取用户的模型列表(P2功能 - 返回mock数据)",
 )
 async def list_models(
     skip: int = Query(0, ge=0, description="跳过的记录数"),
-    limit: int = Query(20, ge=1, le=100, description="返回的记录数")
+    limit: int = Query(20, ge=1, le=100, description="返回的记录数"),
 ) -> ModelListResponse:
     """
     获取模型列表(分页)。
@@ -150,7 +144,7 @@ async def list_models(
         ModelListResponse: 模型列表响应
     """
     now = datetime.utcnow()
-    
+
     mock_models = [
         ModelResponse(
             id=uuid4(),
@@ -165,9 +159,8 @@ async def list_models(
                 vertex_count=512,
                 is_manifold=True,
                 bounding_box=BoundingBoxResponse(
-                    min_point=(0.0, 0.0, 0.0),
-                    max_point=(100.0, 100.0, 50.0)
-                )
+                    min_point=(0.0, 0.0, 0.0), max_point=(100.0, 100.0, 50.0)
+                ),
             ),
             error_message=None,
             created_at=now,
@@ -176,20 +169,13 @@ async def list_models(
         for i in range(min(limit, 3))
     ]
 
-    return ModelListResponse(
-        total=3,
-        items=mock_models
-    )
+    return ModelListResponse(total=3, items=mock_models)
 
 
 @router.delete(
-    "/{model_id}",
-    summary="删除模型",
-    description="删除指定的3D模型(P2功能 - 返回mock响应)"
+    "/{model_id}", summary="删除模型", description="删除指定的3D模型(P2功能 - 返回mock响应)"
 )
-async def delete_model(
-    model_id: UUID = Path(..., description="模型ID")
-) -> dict[str, str]:
+async def delete_model(model_id: UUID = Path(..., description="模型ID")) -> dict[str, str]:
     """
     删除指定的3D模型。
 
@@ -202,19 +188,15 @@ async def delete_model(
     Raises:
         HTTPException: 模型不存在时返回404
     """
-    return {
-        "message": f"Model {model_id} deleted successfully (mock)"
-    }
+    return {"message": f"Model {model_id} deleted successfully (mock)"}
 
 
 @router.get(
     "/{model_id}/download",
     summary="下载模型文件",
-    description="下载指定模型的STL文件(P0功能 - 返回mock响应)"
+    description="下载指定模型的STL文件(P0功能 - 返回mock响应)",
 )
-async def download_model(
-    model_id: UUID = Path(..., description="模型ID")
-) -> dict[str, str]:
+async def download_model(model_id: UUID = Path(..., description="模型ID")) -> dict[str, str]:
     """
     下载模型的STL文件。
 
@@ -230,5 +212,5 @@ async def download_model(
     return {
         "download_url": f"/storage/models/{model_id}.stl",
         "filename": f"model_{model_id}.stl",
-        "message": "Mock download URL (actual file streaming not implemented yet)"
+        "message": "Mock download URL (actual file streaming not implemented yet)",
     }
