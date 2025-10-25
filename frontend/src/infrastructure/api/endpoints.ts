@@ -8,6 +8,14 @@ export const API_ENDPOINTS = {
     list: '/api/v1/models',
   },
   
+  files: {
+    upload: '/api/v1/files/upload',
+    download: (objectKey: string) => `/api/v1/files/${objectKey}`,
+    metadata: (objectKey: string) => `/api/v1/files/${objectKey}/metadata`,
+    delete: (objectKey: string) => `/api/v1/files/${objectKey}`,
+    cleanup: '/api/v1/files/cleanup',
+  },
+  
   styles: {
     transfer: '/api/v1/styles/transfer',
     presets: '/api/v1/styles/presets',
