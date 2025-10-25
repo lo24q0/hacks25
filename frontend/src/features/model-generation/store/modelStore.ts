@@ -1,5 +1,5 @@
-import { create } from 'zustand'
-import type { Model3D, ModelStatus } from '../types/model.types'
+import { create } from 'zustand';
+import type { Model3D } from '../types/model.types';
 
 interface ModelState {
   currentModel: Model3D | null

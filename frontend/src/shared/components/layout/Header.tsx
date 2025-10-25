@@ -6,11 +6,6 @@ export default function Header() {
           <div className="flex items-center">
             <h1 className="text-2xl font-bold text-gray-900">3D模型打印平台</h1>
           </div>
-          <nav className="flex space-x-4">
-            <a href="/" className="text-gray-700 hover:text-gray-900">
-              模型生成
-            </a>
-          </nav>
         </div>
       </div>
     </header>

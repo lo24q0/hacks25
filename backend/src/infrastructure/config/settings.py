@@ -76,6 +76,22 @@ class Settings(BaseSettings):
     celery_task_time_limit: int = Field(default=300, description="Celery 任务超时时间(秒)")
     celery_task_soft_time_limit: int = Field(default=270, description="Celery 任务软超时时间(秒)")
 
+    meshy_api_key: str = Field(
+        default="", description="Meshy AI API 密钥"
+    )
+    meshy_base_url: str = Field(
+        default="https://api.meshy.ai", description="Meshy AI API 基础 URL"
+    )
+    meshy_timeout: int = Field(
+        default=300, description="Meshy AI API 请求超时时间(秒)"
+    )
+    meshy_max_retries: int = Field(
+        default=3, description="Meshy AI API 最大重试次数"
+    )
+    meshy_default_model: str = Field(
+        default="meshy-5", description="Meshy AI 默认模型版本"
+    )
+
     @property
     def redis_url(self) -> str:
         """

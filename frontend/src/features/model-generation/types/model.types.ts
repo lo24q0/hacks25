@@ -1,14 +1,18 @@
-export enum SourceType {
-  TEXT = 'text',
-  IMAGE = 'image',
-}
+export const SourceType = {
+  TEXT: 'text',
+  IMAGE: 'image',
+} as const;
 
-export enum ModelStatus {
-  PENDING = 'pending',
-  PROCESSING = 'processing',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
-}
+export type SourceType = typeof SourceType[keyof typeof SourceType];
+
+export const ModelStatus = {
+  PENDING: 'pending',
+  PROCESSING: 'processing',
+  COMPLETED: 'completed',
+  FAILED: 'failed',
+} as const;
+
+export type ModelStatus = typeof ModelStatus[keyof typeof ModelStatus];
 
 export interface ModelMetadata {
   dimensions?: {

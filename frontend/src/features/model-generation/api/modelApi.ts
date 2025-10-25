@@ -1,5 +1,5 @@
-import { apiClient } from '@/infrastructure/api/client'
-import type { GenerateModelRequest, GenerateModelResponse, Model3D } from '../types/model.types'
+import { apiClient } from '@/infrastructure/api/client';
+import type { GenerateModelResponse, Model3D } from '../types/model.types';
 
 export const modelApi = {
   generateFromText: async (textPrompt: string): Promise<GenerateModelResponse> => {
