@@ -5,7 +5,7 @@ description = "3D模型打印系统后端服务"
 authors = [
     {name = "3D Print Platform Team"}
 ]
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<3.14"
 dependencies = [
     "fastapi==0.115.0",
     "uvicorn[standard]==0.30.6",
