@@ -10,19 +10,19 @@ import time
 from typing import Any, Dict
 from uuid import UUID
 
-from celery import shared_task
-
 from src.domain.value_objects.style_metadata import ErrorInfo
 from src.infrastructure.ai.tencent_style import TencentCloudStyleEngine
 from src.infrastructure.config.settings import settings
 from src.infrastructure.storage.redis_style_task_store import RedisStyleTaskStore
+from src.infrastructure.tasks.celery_app import celery_app
 from src.shared.exceptions.tencent_cloud_exceptions import TencentCloudAPIError
 
 logger = logging.getLogger(__name__)
 
 
-@shared_task(
+@celery_app.task(
     bind=True,
+    name="style_tasks.process_style_transfer",
     max_retries=3,
     default_retry_delay=5,
     autoretry_for=(Exception,),
@@ -369,7 +369,7 @@ def _update_task_in_redis(task_id: str, status: str, **kwargs: Any) -> None:
         loop.close()
 
 
-@shared_task
+@celery_app.task(name="style_tasks.cleanup_expired_style_results")
 def cleanup_expired_style_results(days: int = 7) -> Dict[str, Any]:
     """
     清理过期的风格化结果文件。
