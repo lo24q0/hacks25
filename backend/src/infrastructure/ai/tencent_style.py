@@ -8,7 +8,7 @@
 import base64
 import json
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 from tencentcloud.common import credential
 from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentCloudSDKException
@@ -170,7 +170,7 @@ class TencentCloudStyleEngine(IStyleEngine):
         image_path: str,
         style_preset_id: str,
         output_path: str,
-    ) -> str:
+    ) -> Dict[str, str]:
         """
         执行图像风格化转换。
 
@@ -180,7 +180,9 @@ class TencentCloudStyleEngine(IStyleEngine):
             output_path: 输出文件路径
 
         Returns:
-            str: 风格化后的图片路径
+            Dict[str, str]: 包含以下字段的字典:
+                - result_path: 风格化后的图片路径
+                - request_id: 腾讯云请求ID
 
         Raises:
             FileNotFoundError: 如果源图片不存在
@@ -204,14 +206,20 @@ class TencentCloudStyleEngine(IStyleEngine):
             resp = self.client.ImageToImage(req)
 
             result_image = resp.ResultImage
+            request_id = resp.RequestId
+
             if result_image:
                 self._save_base64_image(result_image, output_path)
-                return output_path
+                return {
+                    "result_path": output_path,
+                    "request_id": request_id or "",
+                }
             else:
                 raise TencentCloudAPIError(
                     error_code="NO_RESULT_IMAGE",
                     message="API 返回结果中没有图片数据",
                     tencent_error_code="NO_RESULT_IMAGE",
+                    tencent_request_id=request_id or "",
                 )
 
         except TencentCloudSDKException as e:

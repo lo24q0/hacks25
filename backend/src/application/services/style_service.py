@@ -131,19 +131,24 @@ class StyleService:
             style_preset_name=style_preset.name,
         )
 
+        # 确保输出目录存在
+        # 原因: /tmp/styled 目录可能不存在,导致任务失败
+        output_dir = Path("/tmp/styled")
+        output_dir.mkdir(parents=True, exist_ok=True)
+
         output_path = f"/tmp/styled/{task.id}.jpg"
 
+        # 保存任务到 Redis (状态为 PENDING)
+        # 原因: Celery 任务启动后会将状态更新为 PROCESSING,避免任务卡在 PROCESSING 状态
+        await self._task_store.save_task(task)
+
+        # 发起异步任务
         process_style_transfer.delay(
             task_id=str(task.id),
             image_path=image_path,
             style_preset_id=style_preset_id,
             output_path=output_path,
         )
-
-        task.start_processing()
-
-        # 保存任务到 Redis
-        await self._task_store.save_task(task)
 
         return task
 
