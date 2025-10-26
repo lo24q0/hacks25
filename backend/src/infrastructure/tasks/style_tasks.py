@@ -71,11 +71,18 @@ def process_style_transfer(  # noqa: C901
         # 更新任务状态为 PROCESSING
         # 原因: 确保只有在 Celery worker 实际开始处理时才更新状态
         try:
-            logger.debug(f"更新任务状态为 PROCESSING | task_id={task_id}")
+            logger.info(f"更新任务状态为 PROCESSING | task_id={task_id}")
             _update_task_status_to_processing(task_id)
+            logger.info(f"任务状态已更新为 PROCESSING | task_id={task_id}")
         except Exception as update_error:
-            logger.error(f"Failed to update task {task_id} to PROCESSING: {update_error}")
-            # 不影响主流程,继续执行
+            logger.error(
+                f"更新任务状态为 PROCESSING 失败 | task_id={task_id}, "
+                f"error_type={type(update_error).__name__}, error={str(update_error)}",
+                exc_info=True,
+            )
+            # 原因: Redis 更新失败可能导致前端看到的一直是 PENDING 状态
+            # 抛出异常，触发 Celery 重试
+            raise
 
         logger.debug(f"初始化腾讯云引擎 | task_id={task_id}")
         engine = TencentCloudStyleEngine(
@@ -120,7 +127,7 @@ def process_style_transfer(  # noqa: C901
 
         # 更新 Redis 中的任务状态
         try:
-            logger.debug(f"更新 Redis 任务状态为 success | task_id={task_id}")
+            logger.info(f"更新 Redis 任务状态为 success | task_id={task_id}")
             _update_task_in_redis(
                 task_id=task_id,
                 status="success",
@@ -128,9 +135,19 @@ def process_style_transfer(  # noqa: C901
                 tencent_request_id=tencent_request_id,
                 actual_time=actual_time,
             )
+            logger.info(
+                f"Redis 任务状态已更新为 COMPLETED | task_id={task_id}, "
+                f"result_path={result_path}"
+            )
         except Exception as update_error:
-            logger.error(f"Failed to update task {task_id} in Redis: {update_error}")
-            # 不影响主流程,继续返回结果
+            logger.error(
+                f"更新 Redis 任务状态失败 | task_id={task_id}, "
+                f"error_type={type(update_error).__name__}, error={str(update_error)}",
+                exc_info=True,
+            )
+            # 原因: 虽然风格化成功，但状态更新失败会导致前端无法获取结果
+            # 抛出异常，触发 Celery 重试
+            raise
 
         return {
             "status": "success",
@@ -173,6 +190,7 @@ def process_style_transfer(  # noqa: C901
 
         # 更新 Redis 中的任务状态
         try:
+            logger.info(f"更新 Redis 任务状态为 failed | task_id={task_id}")
             _update_task_in_redis(
                 task_id=task_id,
                 status="failed",
@@ -183,8 +201,13 @@ def process_style_transfer(  # noqa: C901
                 suggestion=e.suggestion,
                 is_retryable=e.is_retryable,
             )
+            logger.info(f"Redis 任务状态已更新为 FAILED | task_id={task_id}")
         except Exception as update_error:
-            logger.error(f"Failed to update task {task_id} in Redis: {update_error}")
+            logger.error(
+                f"更新 Redis 任务状态失败 | task_id={task_id}, "
+                f"error_type={type(update_error).__name__}, error={str(update_error)}",
+                exc_info=True,
+            )
 
         return error_result
 
@@ -208,6 +231,7 @@ def process_style_transfer(  # noqa: C901
 
         # 更新 Redis 中的任务状态
         try:
+            logger.info(f"更新 Redis 任务状态为 failed (unknown error) | task_id={task_id}")
             _update_task_in_redis(
                 task_id=task_id,
                 status="failed",
@@ -215,8 +239,13 @@ def process_style_transfer(  # noqa: C901
                 error_message=str(e),
                 is_retryable=False,
             )
+            logger.info(f"Redis 任务状态已更新为 FAILED | task_id={task_id}")
         except Exception as update_error:
-            logger.error(f"Failed to update task {task_id} in Redis: {update_error}")
+            logger.error(
+                f"更新 Redis 任务状态失败 | task_id={task_id}, "
+                f"error_type={type(update_error).__name__}, error={str(update_error)}",
+                exc_info=True,
+            )
 
         return error_result
 
@@ -231,6 +260,8 @@ def _update_task_status_to_processing(task_id: str) -> None:
     Raises:
         Exception: 如果更新失败
     """
+    logger.debug(f"开始更新任务状态 | task_id={task_id}, target_status=PROCESSING")
+
     task_store = RedisStyleTaskStore(redis_url=settings.redis_url)
 
     loop = asyncio.new_event_loop()
@@ -238,19 +269,30 @@ def _update_task_status_to_processing(task_id: str) -> None:
 
     try:
         # 从 Redis 获取任务
+        logger.debug(f"从 Redis 获取任务 | task_id={task_id}")
         task = loop.run_until_complete(task_store.get_task(UUID(task_id)))
 
         if task is None:
-            logger.warning(f"Task {task_id} not found in Redis for status update")
-            return
+            error_msg = f"任务不存在于 Redis | task_id={task_id}"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+
+        logger.debug(f"任务当前状态 | task_id={task_id}, current_status={task.status.value}")
 
         # 更新任务状态为 PROCESSING
         task.start_processing()
+        logger.debug(f"任务状态已更新为 PROCESSING (内存) | task_id={task_id}")
 
         # 保存更新后的任务
         loop.run_until_complete(task_store.update_task(task))
-        logger.info(f"Task {task_id} status updated to PROCESSING")
+        logger.info(f"任务状态已保存到 Redis | task_id={task_id}, status=PROCESSING")
 
+    except Exception as e:
+        logger.error(
+            f"更新任务状态失败 | task_id={task_id}, error_type={type(e).__name__}, error={str(e)}",
+            exc_info=True,
+        )
+        raise
     finally:
         loop.run_until_complete(task_store.close())
         loop.close()
@@ -268,6 +310,8 @@ def _update_task_in_redis(task_id: str, status: str, **kwargs: Any) -> None:
     Raises:
         Exception: 如果更新失败
     """
+    logger.debug(f"开始更新 Redis 任务状态 | task_id={task_id}, target_status={status}")
+
     task_store = RedisStyleTaskStore(redis_url=settings.redis_url)
 
     loop = asyncio.new_event_loop()
@@ -275,20 +319,26 @@ def _update_task_in_redis(task_id: str, status: str, **kwargs: Any) -> None:
 
     try:
         # 从 Redis 获取任务
+        logger.debug(f"从 Redis 获取任务 | task_id={task_id}")
         task = loop.run_until_complete(task_store.get_task(UUID(task_id)))
 
         if task is None:
-            logger.warning(f"Task {task_id} not found in Redis for update")
-            return
+            error_msg = f"任务不存在于 Redis | task_id={task_id}"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+
+        logger.debug(f"任务当前状态 | task_id={task_id}, current_status={task.status.value}")
 
         # 更新任务状态
         if status == "success":
+            logger.debug(f"标记任务为完成 | task_id={task_id}")
             task.mark_completed(
                 result_path=kwargs.get("result_path", ""),
                 tencent_request_id=kwargs.get("tencent_request_id", ""),
                 actual_time=kwargs.get("actual_time", 0),
             )
         elif status == "failed":
+            logger.debug(f"标记任务为失败 | task_id={task_id}")
             error_info = ErrorInfo(
                 error_code=kwargs.get("error_code", "UNKNOWN_ERROR"),
                 error_message=kwargs.get("error_message", "Unknown error"),
@@ -300,9 +350,20 @@ def _update_task_in_redis(task_id: str, status: str, **kwargs: Any) -> None:
             task.mark_failed(error_info)
 
         # 保存更新后的任务
+        logger.debug(f"保存任务到 Redis | task_id={task_id}, status={task.status.value}")
         loop.run_until_complete(task_store.update_task(task))
-        logger.info(f"Task {task_id} updated in Redis with status: {status}")
+        logger.info(
+            f"任务状态已保存到 Redis | task_id={task_id}, "
+            f"status={task.status.value}, updated_at={task.updated_at.isoformat()}"
+        )
 
+    except Exception as e:
+        logger.error(
+            f"更新 Redis 任务状态失败 | task_id={task_id}, target_status={status}, "
+            f"error_type={type(e).__name__}, error={str(e)}",
+            exc_info=True,
+        )
+        raise
     finally:
         loop.run_until_complete(task_store.close())
         loop.close()

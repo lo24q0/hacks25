@@ -29,8 +29,10 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/styles", tags=["styles"])
 
-# 全局 Redis 任务存储实例（复用连接池）
+# 全局单例实例（复用连接池和资源）
+# 原因: 避免每次 API 请求都重新初始化引擎和连接
 _task_store: RedisStyleTaskStore | None = None
+_style_engine: TencentCloudStyleEngine | None = None
 
 
 def get_task_store() -> RedisStyleTaskStore:
@@ -43,7 +45,26 @@ def get_task_store() -> RedisStyleTaskStore:
     global _task_store
     if _task_store is None:
         _task_store = RedisStyleTaskStore(redis_url=settings.redis_url)
+        logger.debug("创建 Redis 任务存储单例实例")
     return _task_store
+
+
+def get_style_engine() -> TencentCloudStyleEngine:
+    """
+    获取腾讯云风格化引擎实例（单例模式）。
+
+    Returns:
+        TencentCloudStyleEngine: 风格化引擎实例
+    """
+    global _style_engine
+    if _style_engine is None:
+        _style_engine = TencentCloudStyleEngine(
+            secret_id=settings.tencent_cloud_secret_id,
+            secret_key=settings.tencent_cloud_secret_key,
+            region=settings.tencent_cloud_region,
+        )
+        logger.debug("创建腾讯云风格化引擎单例实例")
+    return _style_engine
 
 
 def get_style_service() -> StyleService:
@@ -53,11 +74,7 @@ def get_style_service() -> StyleService:
     Returns:
         StyleService: 风格化服务实例
     """
-    style_engine = TencentCloudStyleEngine(
-        secret_id=settings.tencent_cloud_secret_id,
-        secret_key=settings.tencent_cloud_secret_key,
-        region=settings.tencent_cloud_region,
-    )
+    style_engine = get_style_engine()
     task_store = get_task_store()
     return StyleService(style_engine=style_engine, task_store=task_store)
 
