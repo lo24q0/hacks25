@@ -105,8 +105,11 @@ export const StyleProgress: React.FC<StyleProgressProps> = ({
           <Title heading={4} style={{ margin: 0 }}>
             风格化处理
           </Title>
-          <Tag color={statusConfig.color} size="large" icon={statusConfig.icon}>
-            {statusConfig.text}
+          <Tag color={statusConfig.color} size="large">
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              {statusConfig.icon}
+              <span>{statusConfig.text}</span>
+            </span>
           </Tag>
         </div>
 
