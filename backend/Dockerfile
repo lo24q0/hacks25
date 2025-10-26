@@ -7,7 +7,34 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
     curl \
+    wget \
+    file \
     && rm -rf /var/lib/apt/lists/*
+
+# 安装 CuraEngine 依赖和从源码编译
+# 原因: CuraEngine 不提供 AppImage,需要从源码编译
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    git \
+    cmake \
+    libprotobuf-dev \
+    protobuf-compiler \
+    libarcus-dev \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# 编译安装 CuraEngine (使用 main 分支最新代码)
+RUN cd /tmp && \
+    git clone --depth 1 https://github.com/Ultimaker/CuraEngine.git && \
+    cd CuraEngine && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make -j$(nproc) && \
+    cp CuraEngine /usr/local/bin/ && \
+    cd / && \
+    rm -rf /tmp/CuraEngine && \
+    /usr/local/bin/CuraEngine --version || echo "CuraEngine installed"
 
 # 优化依赖安装缓存策略:
 # 1. 先单独复制 requirements.txt

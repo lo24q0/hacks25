@@ -8,8 +8,8 @@ import asyncio
 import logging
 from typing import Optional
 
-from infrastructure.ai.meshy_client import MeshyAPIError, MeshyClient
-from infrastructure.ai.meshy_models import (
+from src.infrastructure.ai.meshy_client import MeshyAPIError, MeshyClient
+from src.infrastructure.ai.meshy_models import (
     GenerationConfig,
     MeshyTaskResponse,
     TextTo3DPreviewRequest,

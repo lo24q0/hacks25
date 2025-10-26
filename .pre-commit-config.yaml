@@ -31,6 +31,7 @@ repos:
         files: ^backend/
         additional_dependencies:
           - pydantic>=2.0
+          - pydantic-settings>=2.0
           - types-python-dateutil
         args: ['--config-file=backend/pyproject.toml']
 
@@ -41,15 +42,11 @@ repos:
         files: ^frontend/
         types_or: [javascript, jsx, ts, tsx, css, json, yaml, markdown]
 
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.9.0
+  - repo: local
     hooks:
       - id: eslint
+        name: eslint
+        entry: bash -c 'cd frontend && npx eslint'
+        language: system
         files: ^frontend/.*\.[jt]sx?$
         types: [file]
-        additional_dependencies:
-          - eslint@^9.0.0
-          - typescript-eslint@^8.0.0
-          - eslint-plugin-react-hooks@^5.0.0
-          - eslint-plugin-react-refresh@^0.4.9
-          - globals@^15.9.0

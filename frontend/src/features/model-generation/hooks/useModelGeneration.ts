@@ -13,11 +13,8 @@ export const useModelGeneration = () => {
       setLoading(true)
       setError(null)
       const response = await modelApi.generateFromText(textPrompt)
-      setTaskId(response.celery_task_id || response.taskId || null)
-      // 如果响应中有完整的模型数据，则设置；否则稍后通过轮询获取
-      if (response.status === 'completed' && response.file_path) {
-        setModel(response as Model3D)
-      }
+      setTaskId(response.celery_task_id || null)
+      setModel(response)
       return response
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate model'
@@ -33,11 +30,8 @@ export const useModelGeneration = () => {
       setLoading(true)
       setError(null)
       const response = await modelApi.generateFromImage(imagePaths)
-      setTaskId(response.celery_task_id || response.taskId || null)
-      // 如果响应中有完整的模型数据，则设置；否则稍后通过轮询获取
-      if (response.status === 'completed' && response.file_path) {
-        setModel(response as Model3D)
-      }
+      setTaskId(response.celery_task_id || null)
+      setModel(response)
       return response
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate model'

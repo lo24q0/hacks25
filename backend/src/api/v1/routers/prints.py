@@ -3,7 +3,7 @@ from uuid import UUID
 from typing import List
 from fastapi import APIRouter, HTTPException, Depends
 
-from api.v1.schemas.print import (
+from src.api.v1.schemas.print import (
     CreatePrintTaskRequest,
     PrintTaskResponse,
     RegisterPrinterRequest,
@@ -11,11 +11,11 @@ from api.v1.schemas.print import (
     QueueStatusResponse,
     PrintTaskSummary
 )
-from application.services.print_service import PrintService
-from domain.models.printer import Printer
-from infrastructure.printer.adapters.bambu_adapter import BambuAdapter
-from infrastructure.printer.queue.queue_manager import QueueManager
-from domain.enums.print_enums import AdapterType
+from src.application.services.print_service import PrintService
+from src.domain.models.printer import Printer
+from src.infrastructure.printer.adapters.bambu_adapter import BambuAdapter
+from src.infrastructure.printer.queue.queue_manager import QueueManager
+from src.domain.enums.print_enums import AdapterType
 
 logger = logging.getLogger(__name__)
 
@@ -200,13 +200,17 @@ async def register_printer(
         connection_config=request.connection_config,
         profile=request.profile
     )
-    
+
     if request.adapter_type == AdapterType.BAMBU:
         adapter = BambuAdapter()
-        await adapter.connect(request.connection_config)
+        # 尝试连接打印机,但即使失败也允许注册
+        # 理由: 打印机可能暂时离线,注册后状态会显示为OFFLINE
+        connected = await adapter.connect(request.connection_config)
+        if not connected:
+            logger.warning(f"Failed to connect to printer {request.name}, but registering anyway (will be OFFLINE)")
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported adapter type: {request.adapter_type}")
-    
+
     await print_service.register_printer(printer, adapter)
     
     return PrinterResponse.from_domain(printer)

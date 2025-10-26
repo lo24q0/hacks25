@@ -21,5 +21,14 @@ black==24.8.0
 flake8==7.1.1
 mypy==1.11.2
 pre-commit==3.8.0
-paho-mqtt==2.1.0
+# 拓竹打印机 API
+bambulabs_api>=2.6.5
+
 trimesh==4.5.3
+
+# 数据库
+sqlalchemy[asyncio]==2.0.35
+aiosqlite==0.20.0
+asyncpg==0.30.0
+alembic==1.14.0
+psycopg2-binary==2.9.11

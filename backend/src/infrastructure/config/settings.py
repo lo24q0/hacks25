@@ -4,6 +4,7 @@
 使用 pydantic-settings 管理环境变量和应用配置。
 """
 
+from pathlib import Path
 from typing import Literal, Union
 
 from pydantic import Field, field_validator
@@ -18,7 +19,8 @@ class Settings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        # 从当前文件向上查找项目根目录的 .env 文件
+        env_file=str(Path(__file__).parent.parent.parent.parent.parent / ".env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -43,7 +45,7 @@ class Settings(BaseSettings):
 
     @field_validator("cors_origins", mode="after")
     @classmethod
-    def parse_cors_origins(cls, v):
+    def parse_cors_origins(cls, v: Union[str, list[str]]) -> list[str]:
         """
         解析 CORS 源配置。
 
@@ -64,33 +66,44 @@ class Settings(BaseSettings):
         default="INFO", description="日志级别"
     )
 
-    redis_host: str = Field(default="redis", description="Redis 主机地址")
+    # 数据库配置
+    database_url: str = Field(
+        default="sqlite+aiosqlite:///./print_platform.db", description="数据库连接URL"
+    )
+    database_echo: bool = Field(default=False, description="是否打印SQL语句")
+    database_pool_size: int = Field(default=5, description="数据库连接池大小")
+    database_max_overflow: int = Field(default=10, description="数据库连接池最大溢出")
+
+    redis_host: str = Field(default="localhost", description="Redis 主机地址")
     redis_port: int = Field(default=6379, description="Redis 端口")
     redis_password: str = Field(default="", description="Redis 密码")
     redis_db: int = Field(default=0, description="Redis 数据库编号")
 
-    celery_broker_url: str = Field(default="redis://redis:6379/0", description="Celery broker URL")
+    celery_broker_url: str = Field(
+        default="redis://localhost:6379/0", description="Celery broker URL"
+    )
     celery_result_backend: str = Field(
-        default="redis://redis:6379/0", description="Celery result backend URL"
+        default="redis://localhost:6379/0", description="Celery result backend URL"
     )
     celery_task_time_limit: int = Field(default=300, description="Celery 任务超时时间(秒)")
     celery_task_soft_time_limit: int = Field(default=270, description="Celery 任务软超时时间(秒)")
 
-    meshy_api_key: str = Field(
-        default="", description="Meshy AI API 密钥"
+    meshy_api_key: str = Field(default="", description="Meshy AI API 密钥")
+    meshy_base_url: str = Field(default="https://api.meshy.ai", description="Meshy AI API 基础 URL")
+    meshy_timeout: int = Field(default=300, description="Meshy AI API 请求超时时间(秒)")
+    meshy_max_retries: int = Field(default=3, description="Meshy AI API 最大重试次数")
+    meshy_default_model: str = Field(default="meshy-5", description="Meshy AI 默认模型版本")
+
+    DATABASE_URL: str = Field(
+        default="sqlite+aiosqlite:///./data/app.db", description="数据库连接URL"
     )
-    meshy_base_url: str = Field(
-        default="https://api.meshy.ai", description="Meshy AI API 基础 URL"
-    )
-    meshy_timeout: int = Field(
-        default=300, description="Meshy AI API 请求超时时间(秒)"
-    )
-    meshy_max_retries: int = Field(
-        default=3, description="Meshy AI API 最大重试次数"
-    )
-    meshy_default_model: str = Field(
-        default="meshy-5", description="Meshy AI 默认模型版本"
-    )
+    DATABASE_ECHO: bool = Field(default=False, description="是否打印SQL语句")
+
+    tencent_cloud_secret_id: str = Field(default="", description="腾讯云 API SecretId")
+    tencent_cloud_secret_key: str = Field(default="", description="腾讯云 API SecretKey")
+    tencent_cloud_region: str = Field(default="ap-guangzhou", description="腾讯云地域")
+    style_transfer_timeout: int = Field(default=30, description="风格化任务超时时间(秒)")
+    style_transfer_max_retries: int = Field(default=3, description="风格化任务最大重试次数")
 
     # Mock 模式配置
     mock_mode: bool = Field(
@@ -121,3 +134,13 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def get_settings() -> Settings:
+    """
+    获取全局配置实例
+
+    Returns:
+        Settings: 配置对象
+    """
+    return settings

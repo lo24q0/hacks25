@@ -112,6 +112,8 @@ class ModelResponse(BaseModel):
         updated_at (datetime): 更新时间
     """
 
+    model_config = {"protected_namespaces": ()}
+
     id: UUID = Field(..., description="模型唯一标识")
     source_type: str = Field(..., description="源类型(text/image)")
     status: str = Field(
@@ -123,7 +125,7 @@ class ModelResponse(BaseModel):
     error_message: Optional[str] = Field(None, description="错误信息")
     celery_task_id: Optional[str] = Field(None, description="Celery异步任务ID,用于查询任务状态")
     model_files: Optional[dict[str, str]] = Field(
-        None, 
+        None,
         description="模型文件路径字典,包含glb/obj/fbx/mtl等格式",
         examples=[{"glb": "/storage/models/xxx.glb", "obj": "/storage/models/xxx.obj"}]
     )

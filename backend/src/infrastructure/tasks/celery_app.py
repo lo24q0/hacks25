@@ -28,10 +28,10 @@ celery_app.conf.update(
     worker_prefetch_multiplier=1,
     worker_max_tasks_per_child=1000,
     task_routes={
-        "model_tasks.*": {"queue": "default"},
-        "style_tasks.*": {"queue": "default"},
-        "slicing_tasks.*": {"queue": "default"},
-        "test_tasks.*": {"queue": "default"},
+        "src.infrastructure.tasks.model_tasks.*": {"queue": "generation"},
+        "src.infrastructure.tasks.style_tasks.*": {"queue": "style"},
+        "src.infrastructure.tasks.slicing_tasks.*": {"queue": "slicing"},
+        "src.infrastructure.tasks.test_tasks.*": {"queue": "default"},
     },
     task_default_queue="default",
     task_default_exchange="default",
@@ -40,8 +40,11 @@ celery_app.conf.update(
     broker_connection_retry_on_startup=True,
 )
 
-# 不使用 autodiscover_tasks，而是通过 __init__.py 中的显式导入来注册任务
-# celery_app.autodiscover_tasks(["src.infrastructure.tasks"])
+celery_app.autodiscover_tasks(
+    [
+        "src.infrastructure.tasks",
+    ]
+)
 
 
 @task_success.connect
