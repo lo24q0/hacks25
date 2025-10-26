@@ -64,31 +64,31 @@ export const StyleProgress: React.FC<StyleProgressProps> = ({
     switch (status) {
       case 'pending':
         return {
-          color: 'blue',
+          color: 'blue' as const,
           icon: <IconClock />,
           text: '等待处理',
         }
       case 'processing':
         return {
-          color: 'orange',
+          color: 'orange' as const,
           icon: <Spin size="small" />,
           text: '处理中',
         }
       case 'completed':
         return {
-          color: 'green',
+          color: 'green' as const,
           icon: <IconTickCircle />,
           text: '处理完成',
         }
       case 'failed':
         return {
-          color: 'red',
+          color: 'red' as const,
           icon: <IconAlertCircle />,
           text: '处理失败',
         }
       default:
         return {
-          color: 'grey',
+          color: 'grey' as const,
           icon: null,
           text: '未知状态',
         }
