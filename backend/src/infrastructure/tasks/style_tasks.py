@@ -4,16 +4,21 @@
 提供图片风格化的异步任务处理,支持重试和错误恢复。
 """
 
+import asyncio
+import logging
 import time
-from datetime import datetime
-from typing import Dict, Any
+from typing import Any, Dict
+from uuid import UUID
 
 from celery import shared_task
-from celery.exceptions import Retry
 
+from src.domain.value_objects.style_metadata import ErrorInfo
 from src.infrastructure.ai.tencent_style import TencentCloudStyleEngine
 from src.infrastructure.config.settings import settings
+from src.infrastructure.storage.redis_style_task_store import RedisStyleTaskStore
 from src.shared.exceptions.tencent_cloud_exceptions import TencentCloudAPIError
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task(
@@ -25,7 +30,7 @@ from src.shared.exceptions.tencent_cloud_exceptions import TencentCloudAPIError
     retry_backoff_max=60,
     retry_jitter=True,
 )
-def process_style_transfer(
+def process_style_transfer(  # noqa: C901
     self,
     task_id: str,
     image_path: str,
@@ -65,6 +70,7 @@ def process_style_transfer(
         )
 
         import asyncio
+
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
@@ -80,6 +86,18 @@ def process_style_transfer(
             loop.close()
 
         actual_time = int(time.time() - start_time)
+
+        # 更新 Redis 中的任务状态
+        try:
+            _update_task_in_redis(
+                task_id=task_id,
+                status="success",
+                result_path=result_path,
+                actual_time=actual_time,
+            )
+        except Exception as update_error:
+            logger.error(f"Failed to update task {task_id} in Redis: {update_error}")
+            # 不影响主流程,继续返回结果
 
         return {
             "status": "success",
@@ -106,8 +124,23 @@ def process_style_transfer(
         }
 
         if e.is_retryable and self.request.retries < self.max_retries:
-            retry_delay = min(2 ** self.request.retries, 30)
+            retry_delay = min(2**self.request.retries, 30)
             raise self.retry(exc=e, countdown=retry_delay)
+
+        # 更新 Redis 中的任务状态
+        try:
+            _update_task_in_redis(
+                task_id=task_id,
+                status="failed",
+                error_code=e.error_code,
+                error_message=e.message,
+                tencent_error_code=e.tencent_error_code,
+                user_message=e.user_message,
+                suggestion=e.suggestion,
+                is_retryable=e.is_retryable,
+            )
+        except Exception as update_error:
+            logger.error(f"Failed to update task {task_id} in Redis: {update_error}")
 
         return error_result
 
@@ -123,7 +156,71 @@ def process_style_transfer(
             "actual_time": actual_time,
         }
 
+        # 更新 Redis 中的任务状态
+        try:
+            _update_task_in_redis(
+                task_id=task_id,
+                status="failed",
+                error_code="UNKNOWN_ERROR",
+                error_message=str(e),
+                is_retryable=False,
+            )
+        except Exception as update_error:
+            logger.error(f"Failed to update task {task_id} in Redis: {update_error}")
+
         return error_result
+
+
+def _update_task_in_redis(task_id: str, status: str, **kwargs: Any) -> None:
+    """
+    更新 Redis 中的任务状态。
+
+    Args:
+        task_id: 任务ID
+        status: 任务状态 ('success' 或 'failed')
+        **kwargs: 其他更新字段
+
+    Raises:
+        Exception: 如果更新失败
+    """
+    task_store = RedisStyleTaskStore(redis_url=settings.redis_url)
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    try:
+        # 从 Redis 获取任务
+        task = loop.run_until_complete(task_store.get_task(UUID(task_id)))
+
+        if task is None:
+            logger.warning(f"Task {task_id} not found in Redis for update")
+            return
+
+        # 更新任务状态
+        if status == "success":
+            task.mark_completed(
+                result_path=kwargs.get("result_path", ""),
+                tencent_request_id=kwargs.get("tencent_request_id", ""),
+                actual_time=kwargs.get("actual_time", 0),
+            )
+        elif status == "failed":
+            error_info = ErrorInfo(
+                error_code=kwargs.get("error_code", "UNKNOWN_ERROR"),
+                error_message=kwargs.get("error_message", "Unknown error"),
+                tencent_error_code=kwargs.get("tencent_error_code"),
+                user_message=kwargs.get("user_message"),
+                suggestion=kwargs.get("suggestion"),
+                is_retryable=kwargs.get("is_retryable", False),
+            )
+            task.mark_failed(error_info)
+
+        # 保存更新后的任务
+        loop.run_until_complete(task_store.update_task(task))
+        logger.info(f"Task {task_id} updated in Redis with status: {status}")
+
+    finally:
+        loop.run_until_complete(task_store.close())
+        loop.close()
 
 
 @shared_task
@@ -139,7 +236,6 @@ def cleanup_expired_style_results(days: int = 7) -> Dict[str, Any]:
             - cleaned_count: 清理的文件数量
             - freed_space_mb: 释放的空间(MB)
     """
-    import os
     from pathlib import Path
 
     cleaned_count = 0
