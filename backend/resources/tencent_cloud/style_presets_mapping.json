@@ -1,0 +1,175 @@
+{
+  "version": "1.0",
+  "description": "腾讯云图像风格化 API 风格预设映射配置",
+  "presets": [
+    {
+      "id": "anime",
+      "name": "动漫风格",
+      "name_en": "Anime Style",
+      "description": "将照片转换为日系动漫风格,适合人物照片",
+      "tencent_style_id": 201,
+      "recommended_strength": 80,
+      "preview_image": "/assets/style-previews/anime.jpg",
+      "tags": ["二次元", "动漫", "卡通"],
+      "use_cases": [
+        "人物肖像",
+        "头像制作",
+        "社交媒体内容"
+      ],
+      "limitations": "建议使用清晰的人脸照片,背景过于复杂可能影响效果"
+    },
+    {
+      "id": "cartoon_3d",
+      "name": "3D卡通风格",
+      "name_en": "3D Cartoon",
+      "description": "转换为3D卡通效果,类似皮克斯动画风格",
+      "tencent_style_id": 202,
+      "recommended_strength": 75,
+      "preview_image": "/assets/style-previews/cartoon_3d.jpg",
+      "tags": ["卡通", "3D", "可爱"],
+      "use_cases": [
+        "儿童照片",
+        "宠物照片",
+        "创意头像"
+      ],
+      "limitations": "处理时间较长,建议图片分辨率不超过 2000x2000"
+    },
+    {
+      "id": "sketch",
+      "name": "素描风格",
+      "name_en": "Sketch",
+      "description": "将照片转换为铅笔素描效果",
+      "tencent_style_id": 203,
+      "recommended_strength": 70,
+      "preview_image": "/assets/style-previews/sketch.jpg",
+      "tags": ["素描", "黑白", "艺术"],
+      "use_cases": [
+        "艺术创作",
+        "设计参考",
+        "版画风格"
+      ],
+      "limitations": "黑白输出,不保留颜色信息"
+    },
+    {
+      "id": "watercolor",
+      "name": "水彩画风格",
+      "name_en": "Watercolor",
+      "description": "转换为水彩画效果,柔和淡雅",
+      "tencent_style_id": 204,
+      "recommended_strength": 85,
+      "preview_image": "/assets/style-previews/watercolor.jpg",
+      "tags": ["水彩", "艺术", "柔和"],
+      "use_cases": [
+        "风景照片",
+        "花卉照片",
+        "装饰画"
+      ],
+      "limitations": "细节会有所模糊,适合意境表达"
+    },
+    {
+      "id": "oil_painting",
+      "name": "油画风格",
+      "name_en": "Oil Painting",
+      "description": "转换为油画效果,笔触明显",
+      "tencent_style_id": 205,
+      "recommended_strength": 90,
+      "preview_image": "/assets/style-previews/oil_painting.jpg",
+      "tags": ["油画", "经典", "艺术"],
+      "use_cases": [
+        "肖像照片",
+        "风景照片",
+        "艺术收藏"
+      ],
+      "limitations": "处理时间较长,建议使用高质量原图"
+    }
+  ],
+  "api_config": {
+    "endpoint": "aiart.tencentcloudapi.com",
+    "service_name": "智能创作引擎",
+    "api_version": "2022-12-29",
+    "doc_url": "https://cloud.tencent.com/document/product/1668/88066"
+  },
+  "parameters": {
+    "strength": {
+      "description": "风格强度",
+      "type": "integer",
+      "range": [0, 100],
+      "default": 80,
+      "note": "值越大风格效果越明显,建议范围 70-90"
+    },
+    "input_image": {
+      "description": "输入图片",
+      "format": "base64 或 URL",
+      "max_size": "10MB",
+      "supported_formats": ["JPG", "PNG", "JPEG", "WEBP"],
+      "recommended_resolution": "1024x1024 到 2048x2048"
+    },
+    "rsp_img_type": {
+      "description": "返回图片类型",
+      "type": "string",
+      "options": ["base64", "url"],
+      "default": "base64",
+      "note": "url 返回临时下载链接,有效期 1 小时"
+    }
+  },
+  "rate_limits": {
+    "qps": 5,
+    "daily_quota": 1000,
+    "note": "具体限额以腾讯云控制台为准,可申请提升配额"
+  },
+  "pricing": {
+    "unit": "次",
+    "free_tier": "每月 100 次",
+    "paid_price": "0.1 元/次",
+    "note": "价格仅供参考,以腾讯云官网为准"
+  },
+  "best_practices": [
+    {
+      "title": "图片质量要求",
+      "description": "建议使用分辨率 1024x1024 以上的清晰图片,避免模糊或噪点过多"
+    },
+    {
+      "title": "人脸识别优化",
+      "description": "动漫和卡通风格对人脸效果最佳,建议人脸占比 > 30%"
+    },
+    {
+      "title": "批量处理",
+      "description": "使用异步任务队列处理,避免阻塞主线程"
+    },
+    {
+      "title": "错误重试",
+      "description": "网络异常建议重试 2-3 次,超时时间设置为 30 秒"
+    },
+    {
+      "title": "成本控制",
+      "description": "建议为用户设置每日调用次数限制,避免滥用"
+    }
+  ],
+  "error_codes": [
+    {
+      "code": "FailedOperation.ImageDecodeFailed",
+      "message": "图片解码失败",
+      "solution": "检查图片格式是否正确,Base64 编码是否有误"
+    },
+    {
+      "code": "FailedOperation.ImageResolutionExceed",
+      "message": "图片分辨率过大",
+      "solution": "压缩图片至 2048x2048 以下"
+    },
+    {
+      "code": "FailedOperation.RequestTimeout",
+      "message": "请求超时",
+      "solution": "重试请求,或降低图片分辨率"
+    },
+    {
+      "code": "LimitExceeded.TooLargeFileError",
+      "message": "图片文件过大",
+      "solution": "压缩图片至 10MB 以下"
+    },
+    {
+      "code": "ResourceUsSuspended.InsufficientBalance",
+      "message": "账户余额不足",
+      "solution": "充值或检查账户状态"
+    }
+  ]
+}

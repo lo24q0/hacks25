@@ -78,11 +78,11 @@ class TencentCloudStyleEngine(IStyleEngine):
         """
         加载风格预设配置。
 
-        从 example/tencent_cloud/style_presets_mapping.json 加载预设。
+        从 resources/tencent_cloud/style_presets_mapping.json 加载预设。
         """
         config_path = (
-            Path(__file__).parent.parent.parent.parent.parent
-            / "example"
+            Path(__file__).parent.parent.parent.parent
+            / "resources"
             / "tencent_cloud"
             / "style_presets_mapping.json"
         )
