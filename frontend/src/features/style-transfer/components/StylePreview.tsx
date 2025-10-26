@@ -33,6 +33,13 @@ export const StylePreview: React.FC<StylePreviewProps> = ({
   const [compareMode, setCompareMode] = useState(false)
   const [sliderPosition, setSliderPosition] = useState(50)
 
+  // 调试: 打印接收到的图片URL
+  React.useEffect(() => {
+    console.log('[StylePreview] Original image URL:', originalImageUrl)
+    console.log('[StylePreview] Styled image URL:', styledImageUrl)
+    console.log('[StylePreview] Style name:', styleName)
+  }, [originalImageUrl, styledImageUrl, styleName])
+
   // 处理滑块拖动
   const handleSliderChange = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
