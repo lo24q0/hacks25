@@ -6,7 +6,7 @@ from datetime import timedelta
 from pathlib import Path
 from typing import List, Optional
 
-from domain.interfaces.i_slicer import ISlicer, GCodeResult, PrinterProfile, SlicingConfig
+from src.domain.interfaces.i_slicer import ISlicer, GCodeResult, PrinterProfile, SlicingConfig
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class CuraEngineSlicer(ISlicer):
     def __init__(
         self,
         cura_engine_path: str = "/usr/local/bin/CuraEngine",
-        definitions_dir: str = "/app/resources/cura_definitions"
+        definitions_dir: str = "/app/resources/cura_definitions",
     ):
         """
         初始化 CuraEngine 切片器
@@ -37,8 +37,7 @@ class CuraEngineSlicer(ISlicer):
         # 验证 CuraEngine 是否可用
         if not os.path.exists(cura_engine_path):
             logger.warning(
-                f"CuraEngine not found at {cura_engine_path}. "
-                "Slicing will fail if attempted."
+                f"CuraEngine not found at {cura_engine_path}. " "Slicing will fail if attempted."
             )
 
     def _init_printers(self) -> List[PrinterProfile]:
@@ -56,16 +55,12 @@ class CuraEngineSlicer(ISlicer):
                 nozzle_diameter=0.4,
                 filament_diameter=1.75,
                 max_speed=500,
-                firmware_flavor="Marlin"
+                firmware_flavor="Marlin",
             )
         ]
 
     async def slice_model(
-        self,
-        stl_path: str,
-        printer: PrinterProfile,
-        config: SlicingConfig,
-        output_path: str
+        self, stl_path: str, printer: PrinterProfile, config: SlicingConfig, output_path: str
     ) -> GCodeResult:
         """
         切片模型生成 G-code
@@ -103,20 +98,16 @@ class CuraEngineSlicer(ISlicer):
         # 构建打印机定义文件路径
         definition_file = os.path.join(self.definitions_dir, f"{printer.id}.def.json")
         if not os.path.exists(definition_file):
-            raise FileNotFoundError(
-                f"Printer definition not found: {definition_file}"
-            )
+            raise FileNotFoundError(f"Printer definition not found: {definition_file}")
 
-        logger.info(
-            f"Slicing {stl_path} with CuraEngine for {printer.name}"
-        )
+        logger.info(f"Slicing {stl_path} with CuraEngine for {printer.name}")
 
         # 构建 CuraEngine 命令
         cmd = self._build_command(
             stl_path=stl_path,
             definition_file=definition_file,
             config=config,
-            output_path=output_path
+            output_path=output_path,
         )
 
         # 执行切片
@@ -133,9 +124,7 @@ class CuraEngineSlicer(ISlicer):
 
         # 验证输出文件
         if not os.path.exists(output_path):
-            raise RuntimeError(
-                f"CuraEngine did not generate output file: {output_path}"
-            )
+            raise RuntimeError(f"CuraEngine did not generate output file: {output_path}")
 
         # 解析切片结果
         result = self._parse_gcode_file(output_path, stdout, config)
@@ -149,11 +138,7 @@ class CuraEngineSlicer(ISlicer):
         return result
 
     def _build_command(
-        self,
-        stl_path: str,
-        definition_file: str,
-        config: SlicingConfig,
-        output_path: str
+        self, stl_path: str, definition_file: str, config: SlicingConfig, output_path: str
     ) -> List[str]:
         """
         构建 CuraEngine 命令行参数
@@ -171,9 +156,12 @@ class CuraEngineSlicer(ISlicer):
             self.cura_engine_path,
             "slice",
             "-v",  # 详细输出
-            "-j", definition_file,  # 打印机定义
-            "-l", stl_path,  # 输入模型
-            "-o", output_path,  # 输出 G-code
+            "-j",
+            definition_file,  # 打印机定义
+            "-l",
+            stl_path,  # 输入模型
+            "-o",
+            output_path,  # 输出 G-code
         ]
 
         # 添加切片参数
@@ -209,15 +197,12 @@ class CuraEngineSlicer(ISlicer):
             RuntimeError: 如果命令执行失败
         """
         process = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
 
         try:
             stdout, stderr = await asyncio.wait_for(
-                process.communicate(),
-                timeout=300  # 5 分钟超时
+                process.communicate(), timeout=300  # 5 分钟超时
             )
         except asyncio.TimeoutError:
             process.kill()
@@ -230,16 +215,10 @@ class CuraEngineSlicer(ISlicer):
                 f"{stderr.decode('utf-8', errors='replace')}"
             )
 
-        return (
-            stdout.decode('utf-8', errors='replace'),
-            stderr.decode('utf-8', errors='replace')
-        )
+        return (stdout.decode("utf-8", errors="replace"), stderr.decode("utf-8", errors="replace"))
 
     def _parse_gcode_file(
-        self,
-        gcode_path: str,
-        cura_output: str,
-        config: SlicingConfig
+        self, gcode_path: str, cura_output: str, config: SlicingConfig
     ) -> GCodeResult:
         """
         解析 G-code 文件获取统计信息
@@ -258,23 +237,23 @@ class CuraEngineSlicer(ISlicer):
         estimated_material = 0.0
 
         try:
-            with open(gcode_path, 'r') as f:
+            with open(gcode_path, "r") as f:
                 for line in f:
                     # 统计层数 (查找 ;LAYER: 注释)
-                    if line.startswith(';LAYER:'):
+                    if line.startswith(";LAYER:"):
                         layer_count += 1
 
                     # 尝试从注释中提取时间估算
                     # CuraEngine 通常会在文件头部添加统计信息
-                    if ';TIME:' in line:
-                        match = re.search(r';TIME:(\d+)', line)
+                    if ";TIME:" in line:
+                        match = re.search(r";TIME:(\d+)", line)
                         if match:
                             estimated_time_seconds = int(match.group(1))
 
                     # 尝试提取材料用量
-                    if ';Filament used:' in line:
+                    if ";Filament used:" in line:
                         # 格式: ;Filament used: 1.23456m
-                        match = re.search(r';Filament used: ([\d.]+)m', line)
+                        match = re.search(r";Filament used: ([\d.]+)m", line)
                         if match:
                             filament_length_m = float(match.group(1))
                             # 估算重量: PLA 密度约 1.24 g/cm³, 1.75mm 直径
@@ -282,9 +261,7 @@ class CuraEngineSlicer(ISlicer):
                             # 原因: 转换为立方厘米并乘以密度
                             filament_radius_cm = 0.175 / 2  # 1.75mm = 0.175cm
                             filament_length_cm = filament_length_m * 100
-                            volume_cm3 = (
-                                3.14159 * filament_radius_cm ** 2 * filament_length_cm
-                            )
+                            volume_cm3 = 3.14159 * filament_radius_cm**2 * filament_length_cm
                             estimated_material = volume_cm3 * 1.24  # PLA 密度
 
         except Exception as e:
@@ -309,7 +286,7 @@ class CuraEngineSlicer(ISlicer):
             gcode_path=gcode_path,
             estimated_time=timedelta(seconds=estimated_time_seconds),
             estimated_material=estimated_material,
-            layer_count=layer_count
+            layer_count=layer_count,
         )
 
     def get_available_printers(self) -> List[PrinterProfile]:
@@ -344,5 +321,5 @@ class CuraEngineSlicer(ISlicer):
             infill_density=20,
             print_speed=50,
             support_enabled=False,
-            adhesion_type="brim"
+            adhesion_type="brim",
         )

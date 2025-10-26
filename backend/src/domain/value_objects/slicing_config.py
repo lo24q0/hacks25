@@ -1,11 +1,11 @@
 from pydantic import BaseModel, Field
-from domain.enums.print_enums import AdhesionType, MaterialType
+from src.domain.enums.print_enums import AdhesionType, MaterialType
 
 
 class SlicingConfig(BaseModel):
     """
     切片配置(值对象)
-    
+
     Attributes:
         layer_height: 层高 (0.1-0.3mm)
         infill_density: 填充率 (0-100%)
@@ -17,6 +17,7 @@ class SlicingConfig(BaseModel):
         nozzle_temperature: 喷嘴温度 °C
         bed_temperature: 热床温度 °C
     """
+
     layer_height: float = Field(..., ge=0.1, le=0.3, description="层高 mm")
     infill_density: int = Field(..., ge=0, le=100, description="填充率 %")
     print_speed: int = Field(..., gt=0, description="打印速度 mm/s")
@@ -31,10 +32,10 @@ class SlicingConfig(BaseModel):
     def get_preset(cls, preset_name: str) -> "SlicingConfig":
         """
         获取预设配置
-        
+
         Args:
             preset_name: 预设名称 (fast, standard, high_quality)
-            
+
         Returns:
             SlicingConfig: 预设配置
         """
@@ -48,7 +49,7 @@ class SlicingConfig(BaseModel):
                 adhesion_type=AdhesionType.SKIRT,
                 material_type=MaterialType.PLA,
                 nozzle_temperature=200,
-                bed_temperature=60
+                bed_temperature=60,
             ),
             "standard": cls(
                 layer_height=0.2,
@@ -59,7 +60,7 @@ class SlicingConfig(BaseModel):
                 adhesion_type=AdhesionType.BRIM,
                 material_type=MaterialType.PLA,
                 nozzle_temperature=210,
-                bed_temperature=60
+                bed_temperature=60,
             ),
             "high_quality": cls(
                 layer_height=0.1,
@@ -70,11 +71,11 @@ class SlicingConfig(BaseModel):
                 adhesion_type=AdhesionType.RAFT,
                 material_type=MaterialType.PLA,
                 nozzle_temperature=215,
-                bed_temperature=65
-            )
+                bed_temperature=65,
+            ),
         }
-        
+
         if preset_name not in presets:
             raise ValueError(f"Unknown preset: {preset_name}")
-        
+
         return presets[preset_name]

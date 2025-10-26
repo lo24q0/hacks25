@@ -18,7 +18,7 @@ from tencentcloud.aiart.v20221229 import aiart_client, models
 
 from src.domain.interfaces.i_style_engine import IStyleEngine, StylePreset
 from src.shared.exceptions.tencent_cloud_exceptions import TencentCloudAPIError
-from src.shared.config.tencent_cloud_error_mapping import ErrorMapping as TencentCloudErrorMapping
+from src.shared.config.tencent_cloud_error_mapping import ErrorMapping
 
 
 class TencentCloudStyleEngine(IStyleEngine):
@@ -80,7 +80,12 @@ class TencentCloudStyleEngine(IStyleEngine):
 
         从 example/tencent_cloud/style_presets_mapping.json 加载预设。
         """
-        config_path = Path(__file__).parent.parent.parent.parent.parent / "example" / "tencent_cloud" / "style_presets_mapping.json"
+        config_path = (
+            Path(__file__).parent.parent.parent.parent.parent
+            / "example"
+            / "tencent_cloud"
+            / "style_presets_mapping.json"
+        )
 
         if not config_path.exists():
             raise FileNotFoundError(f"风格预设配置文件不存在: {config_path}")
@@ -210,16 +215,16 @@ class TencentCloudStyleEngine(IStyleEngine):
                 )
 
         except TencentCloudSDKException as e:
-            error_mapping = TencentCloudErrorMapping.get_error_mapping(e.code)
+            error_mapping = ErrorMapping.get_mapping(e.code)
 
             raise TencentCloudAPIError(
-                error_code=error_mapping["system_error_code"],
-                message=error_mapping["error_message"],
+                error_code=error_mapping["code"],
+                message=error_mapping["message"],
                 tencent_error_code=e.code,
                 tencent_request_id=e.get_request_id(),
-                user_message=error_mapping["user_message"],
+                user_message=error_mapping.get("user_action", "请稍后重试"),
                 suggestion=error_mapping["suggestion"],
-                is_retryable=error_mapping["is_retryable"],
+                is_retryable=ErrorMapping.is_retryable(e.code),
                 original_exception=e,
             )
 
