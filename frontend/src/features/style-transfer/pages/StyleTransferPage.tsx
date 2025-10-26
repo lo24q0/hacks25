@@ -25,9 +25,11 @@ export const StyleTransferPage: React.FC = () => {
   // 当前步骤
   const getCurrentStep = () => {
     if (!state.uploadedFile) return 0
-    if (!state.selectedStyleId) return 1
-    if (!state.taskStatus) return 2
+    // 只要还没开始处理(无taskStatus),就停留在步骤1(选择风格并点击开始按钮)
+    if (!state.taskStatus) return 1
+    // 处理完成,进入步骤3(查看结果)
     if (state.taskStatus === 'completed') return 3
+    // 处理中(pending/processing/failed),显示步骤2(处理进度)
     return 2
   }
 
