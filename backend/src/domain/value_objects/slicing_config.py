@@ -34,7 +34,7 @@ class SlicingConfig(BaseModel):
         获取预设配置
 
         Args:
-            preset_name: 预设名称 (fast, standard, high_quality)
+            preset_name: 预设名称 (fast, standard, high_quality, bambu_h2d_standard)
 
         Returns:
             SlicingConfig: 预设配置
@@ -71,8 +71,20 @@ class SlicingConfig(BaseModel):
                 adhesion_type=AdhesionType.RAFT,
                 material_type=MaterialType.PLA,
                 nozzle_temperature=215,
-                bed_temperature=65,
+                bed_temperature=65
             ),
+            # 从 box_prod.gcode.3mf 提取的拓竹 H2D 标准配置
+            "bambu_h2d_standard": cls(
+                layer_height=0.2,           # layer_height: "0.2"
+                infill_density=15,          # sparse_infill_density: "15%"
+                print_speed=200,            # outer_wall_speed: [200, ...]
+                travel_speed=1000,          # travel_speed: [1000, ...]
+                support_enabled=False,      # enable_support: "0"
+                adhesion_type=AdhesionType.BRIM,  # brim_type: "auto_brim"
+                material_type=MaterialType.PLA,   # filament_type: ["PLA"]
+                nozzle_temperature=220,     # nozzle_temperature: [220, ...]
+                bed_temperature=55          # hot_plate_temp: [55]
+            )
         }
 
         if preset_name not in presets:
