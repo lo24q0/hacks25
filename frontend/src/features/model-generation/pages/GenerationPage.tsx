@@ -96,8 +96,17 @@ export default function GenerationPage() {
       const taskStatus = await modelApi.getTaskStatus(taskId)
 
       if (taskStatus.state === 'SUCCESS') {
-        if (taskStatus.result?.model_files?.glb) {
+        // 优先使用 OBJ 文件，因为当前 mock 模式下 STL 文件实际上是 OBJ 格式
+        if (taskStatus.result?.model_files?.obj) {
+          setModelUrl(taskStatus.result.model_files.obj)
+          setShowPreview(true)
+          setProgress('模型生成成功!')
+        } else if (taskStatus.result?.model_files?.glb) {
           setModelUrl(taskStatus.result.model_files.glb)
+          setShowPreview(true)
+          setProgress('模型生成成功!')
+        } else if (taskStatus.result?.model_files?.stl) {
+          setModelUrl(taskStatus.result.model_files.stl)
           setShowPreview(true)
           setProgress('模型生成成功!')
         } else if (taskStatus.result?.file_path) {

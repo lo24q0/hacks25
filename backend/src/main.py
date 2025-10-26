@@ -7,6 +7,8 @@ FastAPI 应用入口。
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 from src.api.v1.routers import files, models, tasks, prints, styles
 from src.infrastructure.config.settings import settings
@@ -84,6 +86,11 @@ app.include_router(files.router, prefix="/api/v1")
 app.include_router(tasks.router, prefix="/api/v1")
 app.include_router(prints.router, prefix="/api/v1")
 app.include_router(styles.router, prefix="/api/v1")
+
+# 添加静态文件服务，让前端能够访问存储的文件
+storage_path = Path(settings.storage_path)
+if storage_path.exists():
+    app.mount("/storage", StaticFiles(directory=str(storage_path)), name="storage")
 
 
 @app.get("/health")

@@ -105,6 +105,18 @@ class Settings(BaseSettings):
     style_transfer_timeout: int = Field(default=30, description="风格化任务超时时间(秒)")
     style_transfer_max_retries: int = Field(default=3, description="风格化任务最大重试次数")
 
+    # Mock 模式配置
+    mock_mode: bool = Field(
+        default=False, 
+        description="是否启用 mock 模式(返回预设的 STL 文件)",
+        alias="MOCK_MODE"
+    )
+    storage_path: str = Field(
+        default="/app/storage", 
+        description="文件存储根路径",
+        alias="STORAGE_PATH"
+    )
+
     @property
     def redis_url(self) -> str:
         """
