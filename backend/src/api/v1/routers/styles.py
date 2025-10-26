@@ -22,9 +22,26 @@ from src.application.services.style_service import StyleService
 from src.infrastructure.ai.tencent_style import TencentCloudStyleEngine
 from src.infrastructure.config.settings import settings
 from src.infrastructure.storage.local_storage import LocalStorageService
+from src.infrastructure.storage.redis_style_task_store import RedisStyleTaskStore
 
 
 router = APIRouter(prefix="/styles", tags=["styles"])
+
+# 全局 Redis 任务存储实例（复用连接池）
+_task_store: RedisStyleTaskStore | None = None
+
+
+def get_task_store() -> RedisStyleTaskStore:
+    """
+    获取 Redis 任务存储实例（单例模式）。
+
+    Returns:
+        RedisStyleTaskStore: Redis 任务存储实例
+    """
+    global _task_store
+    if _task_store is None:
+        _task_store = RedisStyleTaskStore(redis_url=settings.redis_url)
+    return _task_store
 
 
 def get_style_service() -> StyleService:
@@ -39,7 +56,8 @@ def get_style_service() -> StyleService:
         secret_key=settings.tencent_cloud_secret_key,
         region=settings.tencent_cloud_region,
     )
-    return StyleService(style_engine=style_engine)
+    task_store = get_task_store()
+    return StyleService(style_engine=style_engine, task_store=task_store)
 
 
 def get_storage_service() -> LocalStorageService:
@@ -224,7 +242,7 @@ async def get_style_task(
     Raises:
         HTTPException: 如果任务不存在
     """
-    task = service.get_task_status(task_id)
+    task = await service.get_task_status(task_id)
 
     if task is None:
         raise HTTPException(
@@ -289,7 +307,7 @@ async def download_style_result(
     Raises:
         HTTPException: 如果任务不存在或未完成
     """
-    task = service.get_task_status(task_id)
+    task = await service.get_task_status(task_id)
 
     if task is None:
         raise HTTPException(
