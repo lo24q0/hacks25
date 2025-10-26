@@ -12,6 +12,11 @@ from pathlib import Path
 
 from src.api.v1.routers import files, models, tasks, prints, styles
 from src.infrastructure.config.settings import settings
+from src.infrastructure.config.logging_config import setup_logging
+
+# 初始化日志系统
+# 原因: 确保所有模块使用统一的日志配置,在应用启动时就配置好日志
+setup_logging()
 
 app = FastAPI(
     title=settings.app_name,

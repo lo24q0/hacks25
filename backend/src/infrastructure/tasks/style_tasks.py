@@ -60,9 +60,24 @@ def process_style_transfer(  # noqa: C901
     Raises:
         Retry: 如果任务需要重试
     """
+    logger.info(
+        f"开始处理风格化任务 | task_id={task_id}, style_id={style_preset_id}, "
+        f"image_path={image_path}"
+    )
+
     start_time = time.time()
 
     try:
+        # 更新任务状态为 PROCESSING
+        # 原因: 确保只有在 Celery worker 实际开始处理时才更新状态
+        try:
+            logger.debug(f"更新任务状态为 PROCESSING | task_id={task_id}")
+            _update_task_status_to_processing(task_id)
+        except Exception as update_error:
+            logger.error(f"Failed to update task {task_id} to PROCESSING: {update_error}")
+            # 不影响主流程,继续执行
+
+        logger.debug(f"初始化腾讯云引擎 | task_id={task_id}")
         engine = TencentCloudStyleEngine(
             secret_id=settings.tencent_cloud_secret_id,
             secret_key=settings.tencent_cloud_secret_key,
@@ -75,24 +90,42 @@ def process_style_transfer(  # noqa: C901
         asyncio.set_event_loop(loop)
 
         try:
-            result_path = loop.run_until_complete(
+            logger.debug(f"调用腾讯云风格化 API | task_id={task_id}, style_id={style_preset_id}")
+            api_start_time = time.time()
+
+            result = loop.run_until_complete(
                 engine.transfer_style(
                     image_path=image_path,
                     style_preset_id=style_preset_id,
                     output_path=output_path,
                 )
             )
+            result_path = result["result_path"]
+            tencent_request_id = result["request_id"]
+
+            api_elapsed_time = time.time() - api_start_time
+            logger.debug(
+                f"腾讯云 API 调用完成 | task_id={task_id}, request_id={tencent_request_id}, "
+                f"api_time={api_elapsed_time:.2f}s"
+            )
         finally:
             loop.close()
 
         actual_time = int(time.time() - start_time)
 
+        logger.info(
+            f"风格化任务处理成功 | task_id={task_id}, request_id={tencent_request_id}, "
+            f"total_time={actual_time}s, result_path={result_path}"
+        )
+
         # 更新 Redis 中的任务状态
         try:
+            logger.debug(f"更新 Redis 任务状态为 success | task_id={task_id}")
             _update_task_in_redis(
                 task_id=task_id,
                 status="success",
                 result_path=result_path,
+                tencent_request_id=tencent_request_id,
                 actual_time=actual_time,
             )
         except Exception as update_error:
@@ -103,12 +136,19 @@ def process_style_transfer(  # noqa: C901
             "status": "success",
             "task_id": task_id,
             "output_path": result_path,
-            "tencent_request_id": getattr(self, "_last_request_id", None),
+            "tencent_request_id": tencent_request_id,
             "actual_time": actual_time,
         }
 
     except TencentCloudAPIError as e:
         actual_time = int(time.time() - start_time)
+
+        logger.error(
+            f"风格化任务失败(腾讯云 API 错误) | task_id={task_id}, "
+            f"error_code={e.error_code}, tencent_error_code={e.tencent_error_code}, "
+            f"request_id={e.tencent_request_id}, is_retryable={e.is_retryable}, "
+            f"total_time={actual_time}s, message={e.message}"
+        )
 
         error_result = {
             "status": "failed",
@@ -125,6 +165,10 @@ def process_style_transfer(  # noqa: C901
 
         if e.is_retryable and self.request.retries < self.max_retries:
             retry_delay = min(2**self.request.retries, 30)
+            logger.warning(
+                f"任务将重试 | task_id={task_id}, retry_count={self.request.retries + 1}, "
+                f"retry_delay={retry_delay}s"
+            )
             raise self.retry(exc=e, countdown=retry_delay)
 
         # 更新 Redis 中的任务状态
@@ -146,6 +190,12 @@ def process_style_transfer(  # noqa: C901
 
     except Exception as e:
         actual_time = int(time.time() - start_time)
+
+        logger.error(
+            f"风格化任务失败(未知错误) | task_id={task_id}, "
+            f"total_time={actual_time}s, error_type={type(e).__name__}, "
+            f"error_message={str(e)}"
+        )
 
         error_result = {
             "status": "failed",
@@ -169,6 +219,41 @@ def process_style_transfer(  # noqa: C901
             logger.error(f"Failed to update task {task_id} in Redis: {update_error}")
 
         return error_result
+
+
+def _update_task_status_to_processing(task_id: str) -> None:
+    """
+    将任务状态更新为 PROCESSING。
+
+    Args:
+        task_id: 任务ID
+
+    Raises:
+        Exception: 如果更新失败
+    """
+    task_store = RedisStyleTaskStore(redis_url=settings.redis_url)
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    try:
+        # 从 Redis 获取任务
+        task = loop.run_until_complete(task_store.get_task(UUID(task_id)))
+
+        if task is None:
+            logger.warning(f"Task {task_id} not found in Redis for status update")
+            return
+
+        # 更新任务状态为 PROCESSING
+        task.start_processing()
+
+        # 保存更新后的任务
+        loop.run_until_complete(task_store.update_task(task))
+        logger.info(f"Task {task_id} status updated to PROCESSING")
+
+    finally:
+        loop.run_until_complete(task_store.close())
+        loop.close()
 
 
 def _update_task_in_redis(task_id: str, status: str, **kwargs: Any) -> None:

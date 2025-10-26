@@ -74,6 +74,10 @@ class Settings(BaseSettings):
     database_pool_size: int = Field(default=5, description="数据库连接池大小")
     database_max_overflow: int = Field(default=10, description="数据库连接池最大溢出")
 
+    redis_url: str = Field(
+        default="redis://localhost:6379/0",
+        description="Redis 连接URL(优先使用此配置,若未设置则使用下方的分项配置)",
+    )
     redis_host: str = Field(default="localhost", description="Redis 主机地址")
     redis_port: int = Field(default=6379, description="Redis 端口")
     redis_password: str = Field(default="", description="Redis 密码")
@@ -107,12 +111,12 @@ class Settings(BaseSettings):
 
     # Mock 模式配置
     mock_mode: bool = Field(
-        default=False, 
+        default=False,
         description="是否启用 mock 模式(返回预设的 STL 文件)",
         alias="MOCK_MODE"
     )
     storage_path: str = Field(
-        default="/app/storage", 
+        default="/app/storage",
         description="文件存储根路径",
         alias="STORAGE_PATH"
     )
@@ -133,22 +137,6 @@ class Settings(BaseSettings):
     orca_configs_dir: str = Field(
         default="/app/resources/orca_configs", description="OrcaSlicer 配置文件目录"
     )
-
-    @property
-    def redis_url(self) -> str:
-        """
-        构建 Redis 连接 URL。
-
-        Returns:
-            str: Redis 连接字符串
-        """
-        if self.redis_password:
-            return (
-                f"redis://:{self.redis_password}@"
-                f"{self.redis_host}:{self.redis_port}/{self.redis_db}"
-            )
-        return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
-
 
 settings = Settings()
 

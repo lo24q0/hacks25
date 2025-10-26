@@ -39,7 +39,16 @@ export const modelApi = {
     state: string
     ready: boolean
     info?: { progress?: number }
-    result?: { model_files?: { glb?: string }; file_path?: string }
+    result?: {
+      model_files?: {
+        glb?: string
+        obj?: string
+        fbx?: string
+        mtl?: string
+        stl?: string
+      }
+      file_path?: string
+    }
     error?: string
   }> => {
     const response = await apiClient.get(`/api/v1/models/task/${taskId}`)

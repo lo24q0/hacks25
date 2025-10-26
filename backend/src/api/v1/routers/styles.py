@@ -4,6 +4,7 @@
 提供图片风格化相关的 HTTP API 端点。
 """
 
+import logging
 from pathlib import Path
 from uuid import UUID
 
@@ -24,6 +25,7 @@ from src.infrastructure.config.settings import settings
 from src.infrastructure.storage.local_storage import LocalStorageService
 from src.infrastructure.storage.redis_style_task_store import RedisStyleTaskStore
 
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/styles", tags=["styles"])
 
@@ -177,6 +179,15 @@ async def create_style_transfer_task(
     Raises:
         HTTPException: 如果文件验证失败或风格预设不存在
     """
+    file_size_mb = len(await file.read()) / (1024 * 1024)
+    await file.seek(0)  # 重置文件指针
+
+    logger.debug(
+        f"收到风格化任务创建请求 | filename={file.filename}, "
+        f"size={file_size_mb:.2f}MB, style_id={style_preset_id}, "
+        f"content_type={file.content_type}"
+    )
+
     try:
         # 读取文件内容
         file_content = await file.read()
@@ -188,12 +199,19 @@ async def create_style_transfer_task(
             content_type=file.content_type or "application/octet-stream",
         )
 
+        logger.debug(f"文件上传成功 | object_key={file_object.object_key}")
+
         # 使用完整的文件路径
         image_path = str(Path(storage_service.base_path) / file_object.object_key)
 
         task = await service.create_style_task(
             image_path=image_path,
             style_preset_id=style_preset_id,
+        )
+
+        logger.info(
+            f"风格化任务创建成功 | task_id={task.id}, status={task.status.value}, "
+            f"style_id={style_preset_id}"
         )
 
         return StyleTransferResponse(
@@ -203,16 +221,19 @@ async def create_style_transfer_task(
         )
 
     except FileNotFoundError as e:
+        logger.error(f"文件不存在 | error={str(e)}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
         )
     except ValueError as e:
+        logger.error(f"参数验证失败 | error={str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
     except Exception as e:
+        logger.error(f"创建任务失败 | error_type={type(e).__name__}, error={str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"创建任务失败: {str(e)}",
@@ -242,13 +263,21 @@ async def get_style_task(
     Raises:
         HTTPException: 如果任务不存在
     """
+    logger.debug(f"查询任务状态 | task_id={task_id}")
+
     task = await service.get_task_status(task_id)
 
     if task is None:
+        logger.warning(f"任务不存在 | task_id={task_id}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"任务不存在: {task_id}",
         )
+
+    logger.debug(
+        f"返回任务状态 | task_id={task_id}, status={task.status.value}, "
+        f"has_result={task.result_path is not None}"
+    )
 
     metadata_response = StyleTaskMetadataResponse(
         style_preset_id=task.metadata.style_preset_id,
