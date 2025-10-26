@@ -4,17 +4,16 @@
 提供图片风格化的应用层业务逻辑,包括任务创建、状态查询和风格预设管理。
 """
 
-import asyncio
 from pathlib import Path
 from typing import Dict, List, Optional
 from uuid import UUID
 
-from src.domain.enums.status import TaskStatus
 from src.domain.interfaces.i_style_engine import StylePreset
 from src.domain.models.style import StyleTask
 from src.domain.value_objects.style_metadata import ErrorInfo
 from src.infrastructure.ai.tencent_style import TencentCloudStyleEngine
 from src.infrastructure.config.settings import settings
+from src.infrastructure.storage.redis_style_task_store import RedisStyleTaskStore
 from src.infrastructure.tasks.style_tasks import process_style_transfer
 
 
@@ -26,6 +25,7 @@ class StyleService:
 
     Args:
         style_engine: 风格化引擎实例
+        task_store: Redis 任务存储实例
 
     示例:
         >>> service = StyleService()
@@ -43,12 +43,17 @@ class StyleService:
         "max_resolution": (2048, 2048),
     }
 
-    def __init__(self, style_engine: Optional[TencentCloudStyleEngine] = None):
+    def __init__(
+        self,
+        style_engine: Optional[TencentCloudStyleEngine] = None,
+        task_store: Optional[RedisStyleTaskStore] = None,
+    ):
         """
         初始化风格化服务。
 
         Args:
             style_engine: 风格化引擎实例,如果为 None 则使用默认配置创建
+            task_store: Redis 任务存储实例,如果为 None 则使用默认配置创建
         """
         if style_engine is None:
             self.style_engine = TencentCloudStyleEngine(
@@ -59,7 +64,10 @@ class StyleService:
         else:
             self.style_engine = style_engine
 
-        self._tasks_cache: Dict[UUID, StyleTask] = {}
+        if task_store is None:
+            self._task_store = RedisStyleTaskStore(redis_url=settings.redis_url)
+        else:
+            self._task_store = task_store
 
     def validate_image_file(self, image_path: str) -> None:
         """
@@ -134,11 +142,12 @@ class StyleService:
 
         task.start_processing()
 
-        self._tasks_cache[task.id] = task
+        # 保存任务到 Redis
+        await self._task_store.save_task(task)
 
         return task
 
-    def get_task_status(self, task_id: UUID) -> Optional[StyleTask]:
+    async def get_task_status(self, task_id: UUID) -> Optional[StyleTask]:
         """
         查询任务状态。
 
@@ -148,9 +157,9 @@ class StyleService:
         Returns:
             Optional[StyleTask]: 任务实体,如果任务不存在则返回 None
         """
-        return self._tasks_cache.get(task_id)
+        return await self._task_store.get_task(task_id)
 
-    def update_task_from_celery_result(self, task_id: UUID, celery_result: Dict) -> StyleTask:
+    async def update_task_from_celery_result(self, task_id: UUID, celery_result: Dict) -> StyleTask:
         """
         根据 Celery 任务结果更新任务状态。
 
@@ -164,7 +173,7 @@ class StyleService:
         Raises:
             ValueError: 如果任务不存在
         """
-        task = self._tasks_cache.get(task_id)
+        task = await self._task_store.get_task(task_id)
         if task is None:
             raise ValueError(f"任务不存在: {task_id}")
 
@@ -184,6 +193,9 @@ class StyleService:
                 is_retryable=celery_result.get("is_retryable", False),
             )
             task.mark_failed(error_info)
+
+        # 更新 Redis 中的任务状态
+        await self._task_store.update_task(task)
 
         return task
 
