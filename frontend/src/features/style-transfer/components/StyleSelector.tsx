@@ -68,13 +68,13 @@ export const StyleSelector: React.FC<StyleSelectorProps> = ({
           return (
             <Card
               key={preset.id}
-              hoverable
               onClick={() => onSelect(preset.id)}
               style={{
                 cursor: 'pointer',
                 border: isSelected ? '2px solid var(--semi-color-primary)' : '1px solid #e8e8e8',
                 position: 'relative',
                 transition: 'all 0.3s ease',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
               }}
               bodyStyle={{ padding: 16 }}
             >

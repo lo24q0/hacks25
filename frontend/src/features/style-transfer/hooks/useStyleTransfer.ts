@@ -14,6 +14,9 @@ import {
   downloadResult as downloadResultApi,
 } from '../api/styleApi'
 
+// Timer type definition
+type Timer = ReturnType<typeof setInterval>
+
 interface UseStyleTransferState {
   /** 可用的风格预设列表 */
   presets: StylePreset[]
@@ -65,7 +68,7 @@ export const useStyleTransfer = (): [UseStyleTransferState, UseStyleTransferActi
     error: null,
   })
 
-  const pollingTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const pollingTimerRef = useRef<Timer | null>(null)
 
   /**
    * 加载风格预设列表
