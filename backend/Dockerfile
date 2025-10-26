@@ -9,32 +9,26 @@ RUN apt-get update && \
     curl \
     wget \
     file \
+    ca-certificates \
+    fuse \
+    libfuse2 \
+    libgl1 \
+    libglib2.0-0 \
+    libxcb-xinerama0 \
+    libxcb-cursor0 \
     && rm -rf /var/lib/apt/lists/*
 
-# 安装 CuraEngine 依赖和从源码编译
-# 原因: CuraEngine 不提供 AppImage,需要从源码编译
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    git \
-    cmake \
-    libprotobuf-dev \
-    protobuf-compiler \
-    libarcus-dev \
-    python3-dev \
-    && rm -rf /var/lib/apt/lists/*
+# 安装 OrcaSlicer (AppImage 方式)
+# 原因: OrcaSlicer 专为 Bambu Lab 打印机优化,原生支持拓竹 H2D
+# 使用 AppImage 方式简化安装,无需编译
+RUN wget -O /usr/local/bin/orcaslicer \
+    https://github.com/SoftFever/OrcaSlicer/releases/download/v2.1.1/OrcaSlicer_Linux_V2.1.1.AppImage && \
+    chmod +x /usr/local/bin/orcaslicer && \
+    /usr/local/bin/orcaslicer --version || echo "OrcaSlicer installed"
 
-# 编译安装 CuraEngine (使用 main 分支最新代码)
-RUN cd /tmp && \
-    git clone --depth 1 https://github.com/Ultimaker/CuraEngine.git && \
-    cd CuraEngine && \
-    mkdir build && \
-    cd build && \
-    cmake .. && \
-    make -j$(nproc) && \
-    cp CuraEngine /usr/local/bin/ && \
-    cd / && \
-    rm -rf /tmp/CuraEngine && \
-    /usr/local/bin/CuraEngine --version || echo "CuraEngine installed"
+# 配置 AppImage 在容器中运行
+# 原因: AppImage 需要 FUSE,但在容器中可以使用提取模式
+ENV APPIMAGE_EXTRACT_AND_RUN=1
 
 # 优化依赖安装缓存策略:
 # 1. 先单独复制 requirements.txt

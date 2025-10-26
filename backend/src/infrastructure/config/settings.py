@@ -126,6 +126,23 @@ class Settings(BaseSettings):
         default=3, description="风格化任务最大重试次数"
     )
 
+    # 切片引擎配置
+    slicer_engine: Literal["orca", "cura", "mock"] = Field(
+        default="orca", description="切片引擎类型 (orca/cura/mock)"
+    )
+    orca_slicer_path: str = Field(
+        default="/usr/local/bin/orcaslicer", description="OrcaSlicer 可执行文件路径"
+    )
+    cura_engine_path: str = Field(
+        default="/usr/local/bin/CuraEngine", description="CuraEngine 可执行文件路径"
+    )
+    cura_definitions_dir: str = Field(
+        default="/app/resources/cura_definitions", description="CuraEngine 定义文件目录"
+    )
+    orca_configs_dir: str = Field(
+        default="/app/resources/orca_configs", description="OrcaSlicer 配置文件目录"
+    )
+
     @property
     def redis_url(self) -> str:
         """
