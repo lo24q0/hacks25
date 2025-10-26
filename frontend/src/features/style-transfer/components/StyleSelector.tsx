@@ -66,7 +66,7 @@ export const StyleSelector: React.FC<StyleSelectorProps> = ({
           const isSelected = selectedStyleId === preset.id
 
           return (
-            <Card
+            <div
               key={preset.id}
               onClick={() => onSelect(preset.id)}
               style={{
@@ -75,9 +75,16 @@ export const StyleSelector: React.FC<StyleSelectorProps> = ({
                 position: 'relative',
                 transition: 'all 0.3s ease',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                borderRadius: 8,
+                background: 'white',
               }}
-              bodyStyle={{ padding: 16 }}
             >
+              <Card
+                style={{
+                  border: 'none',
+                }}
+                bodyStyle={{ padding: 16 }}
+              >
               {/* 选中标识 */}
               {isSelected && (
                 <div
@@ -154,7 +161,8 @@ export const StyleSelector: React.FC<StyleSelectorProps> = ({
                   </Text>
                 </div>
               </Space>
-            </Card>
+              </Card>
+            </div>
           )
         })}
       </div>
