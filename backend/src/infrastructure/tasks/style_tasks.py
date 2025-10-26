@@ -131,7 +131,9 @@ def process_style_transfer(  # noqa: C901
             result_filename = f"{task_id}.jpg"
             result_image_bytes = base64.b64decode(result_image_base64)
 
-            logger.debug(f"保存风格化结果 | filename={result_filename}, size={len(result_image_bytes)} bytes")
+            logger.debug(
+                f"保存风格化结果 | filename={result_filename}, size={len(result_image_bytes)} bytes"
+            )
 
             file_object = loop.run_until_complete(
                 storage_service.upload_file(
