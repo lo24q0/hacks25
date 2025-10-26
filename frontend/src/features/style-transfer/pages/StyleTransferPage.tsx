@@ -41,10 +41,10 @@ export const StyleTransferPage: React.FC = () => {
 
   // 获取结果图片URL
   const getResultImageUrl = () => {
-    if (state.currentTask?.result_path) {
-      return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}${
-        state.currentTask.result_path
-      }`
+    if (state.currentTask?.id) {
+      return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/v1/styles/tasks/${
+        state.currentTask.id
+      }/result`
     }
     return ''
   }
