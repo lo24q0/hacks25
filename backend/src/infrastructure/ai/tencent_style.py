@@ -7,6 +7,8 @@
 
 import base64
 import json
+import logging
+import time
 from pathlib import Path
 from typing import Dict, List
 
@@ -19,6 +21,8 @@ from tencentcloud.aiart.v20221229 import aiart_client, models
 from src.domain.interfaces.i_style_engine import IStyleEngine, StylePreset
 from src.shared.exceptions.tencent_cloud_exceptions import TencentCloudAPIError
 from src.shared.config.tencent_cloud_error_mapping import ErrorMapping
+
+logger = logging.getLogger(__name__)
 
 
 class TencentCloudStyleEngine(IStyleEngine):
@@ -61,6 +65,11 @@ class TencentCloudStyleEngine(IStyleEngine):
             secret_key: 腾讯云 API SecretKey
             region: 地域
         """
+        logger.debug(
+            f"初始化腾讯云风格化引擎 | region={region}, "
+            f"secret_id={secret_id[:8]}***{secret_id[-4:] if len(secret_id) > 12 else '***'}"
+        )
+
         self.cred = credential.Credential(secret_id, secret_key)
 
         http_profile = HttpProfile()
@@ -73,6 +82,10 @@ class TencentCloudStyleEngine(IStyleEngine):
 
         self._presets: List[StylePreset] = []
         self._load_presets()
+
+        logger.info(
+            f"腾讯云风格化引擎初始化完成 | region={region}, presets_count={len(self._presets)}"
+        )
 
     def _load_presets(self) -> None:
         """
@@ -190,10 +203,26 @@ class TencentCloudStyleEngine(IStyleEngine):
             TencentCloudAPIError: 如果 API 调用失败
         """
         if style_preset_id not in self.STYLE_TYPES_MAPPING:
-            raise ValueError(
+            error_msg = (
                 f"不支持的风格类型: {style_preset_id}. "
                 f"可选值: {', '.join(self.STYLE_TYPES_MAPPING.keys())}"
             )
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+
+        # 获取图片大小
+        image_path_obj = Path(image_path)
+        image_size_mb = (
+            image_path_obj.stat().st_size / (1024 * 1024) if image_path_obj.exists() else 0
+        )
+
+        logger.debug(
+            f"开始调用腾讯云风格化 API | style_id={style_preset_id}, "
+            f"tencent_style_id={self.STYLE_TYPES_MAPPING[style_preset_id]}, "
+            f"image_path={image_path}, image_size={image_size_mb:.2f}MB"
+        )
+
+        start_time = time.time()
 
         try:
             req = models.ImageToImageRequest()
@@ -203,18 +232,35 @@ class TencentCloudStyleEngine(IStyleEngine):
 
             req.Styles = [self.STYLE_TYPES_MAPPING[style_preset_id]]
 
+            logger.debug(f"发起腾讯云 API 请求 | style_id={style_preset_id}")
+
             resp = self.client.ImageToImage(req)
 
+            elapsed_time = time.time() - start_time
             result_image = resp.ResultImage
             request_id = resp.RequestId
 
+            logger.debug(
+                f"腾讯云 API 响应成功 | request_id={request_id}, "
+                f"elapsed_time={elapsed_time:.2f}s, has_result={bool(result_image)}"
+            )
+
             if result_image:
                 self._save_base64_image(result_image, output_path)
+
+                # 记录输出文件大小
+                output_size_mb = Path(output_path).stat().st_size / (1024 * 1024)
+                logger.info(
+                    f"风格化处理成功 | style_id={style_preset_id}, request_id={request_id}, "
+                    f"elapsed_time={elapsed_time:.2f}s, output_size={output_size_mb:.2f}MB"
+                )
+
                 return {
                     "result_path": output_path,
                     "request_id": request_id or "",
                 }
             else:
+                logger.error(f"腾讯云 API 返回结果中没有图片数据 | request_id={request_id}")
                 raise TencentCloudAPIError(
                     error_code="NO_RESULT_IMAGE",
                     message="API 返回结果中没有图片数据",
@@ -223,7 +269,14 @@ class TencentCloudStyleEngine(IStyleEngine):
                 )
 
         except TencentCloudSDKException as e:
+            elapsed_time = time.time() - start_time
             error_mapping = ErrorMapping.get_mapping(e.code)
+
+            logger.error(
+                f"腾讯云 API 调用失败 | style_id={style_preset_id}, "
+                f"tencent_error_code={e.code}, request_id={e.get_request_id()}, "
+                f"elapsed_time={elapsed_time:.2f}s, error_message={str(e)}"
+            )
 
             raise TencentCloudAPIError(
                 error_code=error_mapping["code"],

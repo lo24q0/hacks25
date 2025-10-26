@@ -4,10 +4,18 @@ Celery 应用配置模块。
 配置 Celery 异步任务处理框架,包括 broker、backend 和任务路由配置。
 """
 
+import logging
+
 from celery import Celery
-from celery.signals import task_failure, task_success
+from celery.signals import task_failure, task_success, worker_ready
 
 from src.infrastructure.config.settings import settings
+from src.infrastructure.config.logging_config import setup_logging
+
+# 初始化日志系统
+setup_logging()
+
+logger = logging.getLogger(__name__)
 
 celery_app = Celery(
     "3d_print_platform",
@@ -47,6 +55,18 @@ celery_app.autodiscover_tasks(
 )
 
 
+@worker_ready.connect
+def worker_ready_handler(sender=None, **kwargs):
+    """
+    Worker 启动完成时的回调处理。
+
+    Args:
+        sender: 发送信号的 worker
+        **kwargs: 其他参数
+    """
+    logger.info(f"Celery worker 已启动 | worker={sender.hostname if sender else 'Unknown'}")
+
+
 @task_success.connect
 def task_success_handler(sender=None, result=None, **kwargs):
     """
@@ -59,7 +79,15 @@ def task_success_handler(sender=None, result=None, **kwargs):
     """
     task_id = kwargs.get("task_id")
     task_name = sender.name if sender else "Unknown"
-    print(f"Task {task_name} [{task_id}] succeeded with result: {result}")
+
+    # 简化任务结果输出,避免日志过长
+    result_summary = "..."
+    if isinstance(result, dict):
+        result_summary = f"status={result.get('status', 'unknown')}"
+
+    logger.info(
+        f"Celery 任务成功 | task_name={task_name}, task_id={task_id}, result={result_summary}"
+    )
 
 
 @task_failure.connect
@@ -74,4 +102,9 @@ def task_failure_handler(sender=None, exception=None, **kwargs):
     """
     task_id = kwargs.get("task_id")
     task_name = sender.name if sender else "Unknown"
-    print(f"Task {task_name} [{task_id}] failed with exception: {exception}")
+    exception_type = type(exception).__name__ if exception else "Unknown"
+
+    logger.error(
+        f"Celery 任务失败 | task_name={task_name}, task_id={task_id}, "
+        f"exception_type={exception_type}, exception={str(exception)}"
+    )
