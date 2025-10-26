@@ -41,11 +41,17 @@ export const StyleTransferPage: React.FC = () => {
 
   // 获取结果图片URL
   const getResultImageUrl = () => {
-    if (state.currentTask?.result_path) {
-      return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}${
-        state.currentTask.result_path
-      }`
+    if (state.currentTask?.id) {
+      const url = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/v1/styles/tasks/${
+        state.currentTask.id
+      }/result`
+      console.log('[StyleTransferPage] Result image URL:', url)
+      console.log('[StyleTransferPage] Task ID:', state.currentTask.id)
+      console.log('[StyleTransferPage] Task status:', state.currentTask.status)
+      console.log('[StyleTransferPage] Result path:', state.currentTask.result_path)
+      return url
     }
+    console.warn('[StyleTransferPage] No task ID available, currentTask:', state.currentTask)
     return ''
   }
 
@@ -186,7 +192,7 @@ export const StyleTransferPage: React.FC = () => {
             )}
 
             {/* 步骤 4: 查看结果 */}
-            {currentStep === 3 && state.uploadedImageUrl && state.currentTask?.result_path && (
+            {currentStep === 3 && state.uploadedImageUrl && state.currentTask?.id && (
               <>
                 <StylePreview
                   originalImageUrl={state.uploadedImageUrl}

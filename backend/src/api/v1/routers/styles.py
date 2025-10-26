@@ -29,8 +29,10 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/styles", tags=["styles"])
 
-# 全局 Redis 任务存储实例（复用连接池）
+# 全局单例实例（复用连接池和资源）
+# 原因: 避免每次 API 请求都重新初始化引擎和连接
 _task_store: RedisStyleTaskStore | None = None
+_style_engine: TencentCloudStyleEngine | None = None
 
 
 def get_task_store() -> RedisStyleTaskStore:
@@ -43,7 +45,26 @@ def get_task_store() -> RedisStyleTaskStore:
     global _task_store
     if _task_store is None:
         _task_store = RedisStyleTaskStore(redis_url=settings.redis_url)
+        logger.debug("创建 Redis 任务存储单例实例")
     return _task_store
+
+
+def get_style_engine() -> TencentCloudStyleEngine:
+    """
+    获取腾讯云风格化引擎实例（单例模式）。
+
+    Returns:
+        TencentCloudStyleEngine: 风格化引擎实例
+    """
+    global _style_engine
+    if _style_engine is None:
+        _style_engine = TencentCloudStyleEngine(
+            secret_id=settings.tencent_cloud_secret_id,
+            secret_key=settings.tencent_cloud_secret_key,
+            region=settings.tencent_cloud_region,
+        )
+        logger.debug("创建腾讯云风格化引擎单例实例")
+    return _style_engine
 
 
 def get_style_service() -> StyleService:
@@ -53,11 +74,7 @@ def get_style_service() -> StyleService:
     Returns:
         StyleService: 风格化服务实例
     """
-    style_engine = TencentCloudStyleEngine(
-        secret_id=settings.tencent_cloud_secret_id,
-        secret_key=settings.tencent_cloud_secret_key,
-        region=settings.tencent_cloud_region,
-    )
+    style_engine = get_style_engine()
     task_store = get_task_store()
     return StyleService(style_engine=style_engine, task_store=task_store)
 
@@ -69,7 +86,9 @@ def get_storage_service() -> LocalStorageService:
     Returns:
         LocalStorageService: 存储服务实例
     """
-    return LocalStorageService()
+    # 使用统一的存储路径配置
+    # 原因: 保持与模型生成模块一致,便于后续替换为 MinIO/S3
+    return LocalStorageService(base_path=settings.storage_path)
 
 
 @router.get(
@@ -201,11 +220,10 @@ async def create_style_transfer_task(
 
         logger.debug(f"文件上传成功 | object_key={file_object.object_key}")
 
-        # 使用完整的文件路径
-        image_path = str(Path(storage_service.base_path) / file_object.object_key)
-
+        # 传递 object_key 而非完整路径
+        # 原因: 符合存储抽象层原则,由 service 层负责路径解析
         task = await service.create_style_task(
-            image_path=image_path,
+            image_object_key=file_object.object_key,
             style_preset_id=style_preset_id,
         )
 
@@ -322,6 +340,7 @@ async def get_style_task(
 async def download_style_result(
     task_id: UUID,
     service: StyleService = Depends(get_style_service),
+    storage_service: LocalStorageService = Depends(get_storage_service),
 ) -> FileResponse:
     """
     下载风格化结果。
@@ -329,6 +348,7 @@ async def download_style_result(
     Args:
         task_id: 任务ID
         service: 风格化服务实例
+        storage_service: 存储服务实例
 
     Returns:
         FileResponse: 图片文件响应
@@ -356,8 +376,12 @@ async def download_style_result(
             detail="结果文件不存在",
         )
 
+    # 使用存储服务获取完整路径
+    # 原因: result_path 现在存储的是 object_key,需要转换为完整路径
+    full_path = str(Path(storage_service.base_path) / task.result_path)
+
     return FileResponse(
-        path=task.result_path,
+        path=full_path,
         media_type="image/jpeg",
         filename=f"styled_{task_id}.jpg",
     )

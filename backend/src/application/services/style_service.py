@@ -13,6 +13,7 @@ from src.domain.models.style import StyleTask
 from src.domain.value_objects.style_metadata import ErrorInfo
 from src.infrastructure.ai.tencent_style import TencentCloudStyleEngine
 from src.infrastructure.config.settings import settings
+from src.infrastructure.storage.local_storage import LocalStorageService
 from src.infrastructure.storage.redis_style_task_store import RedisStyleTaskStore
 from src.infrastructure.tasks.style_tasks import process_style_transfer
 
@@ -47,6 +48,7 @@ class StyleService:
         self,
         style_engine: Optional[TencentCloudStyleEngine] = None,
         task_store: Optional[RedisStyleTaskStore] = None,
+        storage_service: Optional[LocalStorageService] = None,
     ):
         """
         初始化风格化服务。
@@ -54,6 +56,7 @@ class StyleService:
         Args:
             style_engine: 风格化引擎实例,如果为 None 则使用默认配置创建
             task_store: Redis 任务存储实例,如果为 None 则使用默认配置创建
+            storage_service: 存储服务实例,如果为 None 则使用默认配置创建
         """
         if style_engine is None:
             self.style_engine = TencentCloudStyleEngine(
@@ -68,6 +71,11 @@ class StyleService:
             self._task_store = RedisStyleTaskStore(redis_url=settings.redis_url)
         else:
             self._task_store = task_store
+
+        if storage_service is None:
+            self._storage_service = LocalStorageService(base_path=settings.storage_path)
+        else:
+            self._storage_service = storage_service
 
     def validate_image_file(self, image_path: str) -> None:
         """
@@ -104,14 +112,14 @@ class StyleService:
 
     async def create_style_task(
         self,
-        image_path: str,
+        image_object_key: str,
         style_preset_id: str,
     ) -> StyleTask:
         """
         创建风格化任务。
 
         Args:
-            image_path: 输入图片路径
+            image_object_key: 输入图片在存储服务中的对象键
             style_preset_id: 风格预设ID
 
         Returns:
@@ -121,33 +129,34 @@ class StyleService:
             FileNotFoundError: 如果图片文件不存在
             ValueError: 如果文件验证失败或风格预设不存在
         """
-        self.validate_image_file(image_path)
+        # 验证文件是否存在
+        # 原因: 通过存储服务验证,而非直接访问文件系统
+        if not await self._storage_service.file_exists(image_object_key):
+            raise FileNotFoundError(f"图片文件不存在: {image_object_key}")
+
+        # 获取完整路径用于验证
+        full_path = str(Path(self._storage_service.base_path) / image_object_key)
+        self.validate_image_file(full_path)
 
         style_preset = self.style_engine.get_style_preset(style_preset_id)
 
         task = StyleTask(
-            image_path=image_path,
+            image_path=image_object_key,  # 存储 object_key 而非完整路径
             style_preset_id=style_preset_id,
             style_preset_name=style_preset.name,
         )
-
-        # 确保输出目录存在
-        # 原因: /tmp/styled 目录可能不存在,导致任务失败
-        output_dir = Path("/tmp/styled")
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-        output_path = f"/tmp/styled/{task.id}.jpg"
 
         # 保存任务到 Redis (状态为 PENDING)
         # 原因: Celery 任务启动后会将状态更新为 PROCESSING,避免任务卡在 PROCESSING 状态
         await self._task_store.save_task(task)
 
         # 发起异步任务
+        # 原因: 传递 object_key 而非完整路径,由 Celery 任务通过 StorageService 读取
         process_style_transfer.delay(
             task_id=str(task.id),
-            image_path=image_path,
+            image_object_key=image_object_key,
             style_preset_id=style_preset_id,
-            output_path=output_path,
+            storage_path=settings.storage_path,  # 传递存储根路径
         )
 
         return task

@@ -65,10 +65,16 @@ class StyleTask:
         开始处理任务。
 
         将任务状态从 PENDING 更新为 PROCESSING。
+        如果任务已经是 PROCESSING 状态，则不做任何操作（幂等性）。
 
         Raises:
-            ValueError: 如果任务状态不是 PENDING
+            ValueError: 如果任务状态不是 PENDING 或 PROCESSING
         """
+        # 原因: 允许幂等性操作，避免 Celery 重试时状态转换失败
+        if self.status == TaskStatus.PROCESSING:
+            # 任务已经在处理中，不做任何操作
+            return
+
         if self.status != TaskStatus.PENDING:
             raise ValueError(f"只能开始处理状态为 PENDING 的任务,当前状态: {self.status}")
 
@@ -85,8 +91,24 @@ class StyleTask:
             actual_time: 实际处理时间(秒)
 
         Raises:
-            ValueError: 如果任务状态不是 PROCESSING
+            ValueError: 如果任务状态不是 PROCESSING 或 COMPLETED
         """
+        # 原因: 允许幂等性操作，避免重复更新时报错
+        if self.status == TaskStatus.COMPLETED:
+            # 任务已经完成，更新元数据但不改变状态
+            self.result_path = result_path
+            self.updated_at = datetime.now()
+            self.metadata = StyleTaskMetadata(
+                style_preset_id=self.metadata.style_preset_id,
+                style_preset_name=self.metadata.style_preset_name,
+                estimated_time=self.metadata.estimated_time,
+                actual_time=actual_time,
+                tencent_request_id=tencent_request_id,
+                created_at=self.metadata.created_at,
+                completed_at=self.metadata.completed_at or datetime.now(),
+            )
+            return
+
         if self.status != TaskStatus.PROCESSING:
             raise ValueError(f"只能完成状态为 PROCESSING 的任务,当前状态: {self.status}")
 
@@ -112,8 +134,15 @@ class StyleTask:
             error_info: 错误信息
 
         Raises:
-            ValueError: 如果任务状态不是 PROCESSING
+            ValueError: 如果任务状态不是 PROCESSING 或 FAILED
         """
+        # 原因: 允许幂等性操作，避免重复标记失败时报错
+        if self.status == TaskStatus.FAILED:
+            # 任务已经标记为失败，更新错误信息但不改变状态
+            self.error_info = error_info
+            self.updated_at = datetime.now()
+            return
+
         if self.status != TaskStatus.PROCESSING:
             raise ValueError(f"只能标记状态为 PROCESSING 的任务为失败,当前状态: {self.status}")
 
@@ -167,7 +196,9 @@ class StyleTask:
                 "estimated_time": self.metadata.estimated_time,
                 "actual_time": self.metadata.actual_time,
                 "tencent_request_id": self.metadata.tencent_request_id,
-                "created_at": self.metadata.created_at.isoformat() if self.metadata.created_at else None,
+                "created_at": (
+                    self.metadata.created_at.isoformat() if self.metadata.created_at else None
+                ),
                 "completed_at": (
                     self.metadata.completed_at.isoformat() if self.metadata.completed_at else None
                 ),

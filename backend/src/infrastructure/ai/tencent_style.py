@@ -182,7 +182,6 @@ class TencentCloudStyleEngine(IStyleEngine):
         self,
         image_path: str,
         style_preset_id: str,
-        output_path: str,
     ) -> Dict[str, str]:
         """
         执行图像风格化转换。
@@ -190,11 +189,10 @@ class TencentCloudStyleEngine(IStyleEngine):
         Args:
             image_path: 源图片路径
             style_preset_id: 风格预设ID
-            output_path: 输出文件路径
 
         Returns:
             Dict[str, str]: 包含以下字段的字典:
-                - result_path: 风格化后的图片路径
+                - result_image_base64: 风格化后的图片 Base64 编码数据
                 - request_id: 腾讯云请求ID
 
         Raises:
@@ -246,17 +244,16 @@ class TencentCloudStyleEngine(IStyleEngine):
             )
 
             if result_image:
-                self._save_base64_image(result_image, output_path)
-
-                # 记录输出文件大小
-                output_size_mb = Path(output_path).stat().st_size / (1024 * 1024)
+                # 返回 Base64 数据而非保存到文件
+                # 原因: 由调用方通过 StorageService 统一保存,符合存储抽象层原则
+                result_size_mb = len(result_image) / (1024 * 1024) * 0.75  # Base64 约为原始大小 75%
                 logger.info(
                     f"风格化处理成功 | style_id={style_preset_id}, request_id={request_id}, "
-                    f"elapsed_time={elapsed_time:.2f}s, output_size={output_size_mb:.2f}MB"
+                    f"elapsed_time={elapsed_time:.2f}s, result_size_est={result_size_mb:.2f}MB"
                 )
 
                 return {
-                    "result_path": output_path,
+                    "result_image_base64": result_image,
                     "request_id": request_id or "",
                 }
             else:

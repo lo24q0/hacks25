@@ -33,6 +33,13 @@ export const StylePreview: React.FC<StylePreviewProps> = ({
   const [compareMode, setCompareMode] = useState(false)
   const [sliderPosition, setSliderPosition] = useState(50)
 
+  // 调试: 打印接收到的图片URL
+  React.useEffect(() => {
+    console.log('[StylePreview] Original image URL:', originalImageUrl)
+    console.log('[StylePreview] Styled image URL:', styledImageUrl)
+    console.log('[StylePreview] Style name:', styleName)
+  }, [originalImageUrl, styledImageUrl, styleName])
+
   // 处理滑块拖动
   const handleSliderChange = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -102,12 +109,27 @@ export const StylePreview: React.FC<StylePreviewProps> = ({
                 position: 'absolute',
                 width: '100%',
                 height: '100%',
-                backgroundImage: `url(${styledImageUrl})`,
-                backgroundSize: 'contain',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
-            />
+            >
+              <img
+                src={styledImageUrl}
+                alt="风格化结果"
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  objectFit: 'contain',
+                }}
+                onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                  console.error('[StylePreview] Styled image load error:', styledImageUrl, e)
+                }}
+                onLoad={() => {
+                  console.log('[StylePreview] Styled image loaded successfully')
+                }}
+              />
+            </div>
 
             {/* 原图(顶层,带裁剪) */}
             <div
@@ -116,12 +138,27 @@ export const StylePreview: React.FC<StylePreviewProps> = ({
                 width: '100%',
                 height: '100%',
                 clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`,
-                backgroundImage: `url(${originalImageUrl})`,
-                backgroundSize: 'contain',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
-            />
+            >
+              <img
+                src={originalImageUrl}
+                alt="原图"
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  objectFit: 'contain',
+                }}
+                onError={(e) => {
+                  console.error('[StylePreview] Original image load error:', originalImageUrl, e)
+                }}
+                onLoad={() => {
+                  console.log('[StylePreview] Original image loaded successfully')
+                }}
+              />
+            </div>
 
             {/* 滑块分割线 */}
             <div
@@ -196,15 +233,33 @@ export const StylePreview: React.FC<StylePreviewProps> = ({
             }}
           >
             {/* 原图 */}
-            <div style={{ position: 'relative', height: 600, background: 'white' }}>
-              <div
+            <div
+              style={{
+                position: 'relative',
+                height: 600,
+                background: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <img
+                src={originalImageUrl}
+                alt="原图"
                 style={{
-                  width: '100%',
-                  height: '100%',
-                  backgroundImage: `url(${originalImageUrl})`,
-                  backgroundSize: 'contain',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  objectFit: 'contain',
+                }}
+                onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                  console.error(
+                    '[StylePreview] Original image (grid) load error:',
+                    originalImageUrl,
+                    e
+                  )
+                }}
+                onLoad={() => {
+                  console.log('[StylePreview] Original image (grid) loaded successfully')
                 }}
               />
               <div
@@ -222,15 +277,33 @@ export const StylePreview: React.FC<StylePreviewProps> = ({
             </div>
 
             {/* 风格化图片 */}
-            <div style={{ position: 'relative', height: 600, background: 'white' }}>
-              <div
+            <div
+              style={{
+                position: 'relative',
+                height: 600,
+                background: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <img
+                src={styledImageUrl}
+                alt="风格化结果"
                 style={{
-                  width: '100%',
-                  height: '100%',
-                  backgroundImage: `url(${styledImageUrl})`,
-                  backgroundSize: 'contain',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  objectFit: 'contain',
+                }}
+                onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                  console.error(
+                    '[StylePreview] Styled image (grid) load error:',
+                    styledImageUrl,
+                    e
+                  )
+                }}
+                onLoad={() => {
+                  console.log('[StylePreview] Styled image (grid) loaded successfully')
                 }}
               />
               <div
