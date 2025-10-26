@@ -2,6 +2,7 @@ import asyncio
 import logging
 from datetime import datetime
 
+from ..config.settings import settings
 from ..storage.local_storage import LocalStorageService
 
 logger = logging.getLogger(__name__)
@@ -19,7 +20,9 @@ async def cleanup_expired_files_task() -> int:
     logger.info("Starting expired files cleanup task")
 
     try:
-        storage_service = LocalStorageService(base_path="./storage")
+        # 使用统一的存储路径配置
+        # 原因: 保持与模型生成模块和风格化模块一致
+        storage_service = LocalStorageService(base_path=settings.storage_path)
         cleaned_count = await storage_service.cleanup_expired_files()
 
         logger.info(f"Cleanup task completed. Cleaned {cleaned_count} files")
