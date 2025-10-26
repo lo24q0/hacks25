@@ -4,13 +4,13 @@
 提供图片风格化相关的 HTTP API 端点。
 """
 
-from typing import List
+from pathlib import Path
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 
-from api.v1.schemas.style import (
+from src.api.v1.schemas.style import (
     ErrorInfoResponse,
     StylePresetResponse,
     StylePresetsResponse,
@@ -18,14 +18,30 @@ from api.v1.schemas.style import (
     StyleTaskResponse,
     StyleTransferResponse,
 )
-from application.services.style_service import StyleService
-from domain.models.style import StyleTask
-from infrastructure.ai.tencent_style import TencentCloudStyleEngine
-from infrastructure.config.settings import settings
-from infrastructure.storage.local_storage import LocalStorageService
+from src.application.services.style_service import StyleService
+from src.infrastructure.ai.tencent_style import TencentCloudStyleEngine
+from src.infrastructure.config.settings import settings
+from src.infrastructure.storage.local_storage import LocalStorageService
+from src.infrastructure.storage.redis_style_task_store import RedisStyleTaskStore
 
 
 router = APIRouter(prefix="/styles", tags=["styles"])
+
+# 全局 Redis 任务存储实例（复用连接池）
+_task_store: RedisStyleTaskStore | None = None
+
+
+def get_task_store() -> RedisStyleTaskStore:
+    """
+    获取 Redis 任务存储实例（单例模式）。
+
+    Returns:
+        RedisStyleTaskStore: Redis 任务存储实例
+    """
+    global _task_store
+    if _task_store is None:
+        _task_store = RedisStyleTaskStore(redis_url=settings.redis_url)
+    return _task_store
 
 
 def get_style_service() -> StyleService:
@@ -40,7 +56,8 @@ def get_style_service() -> StyleService:
         secret_key=settings.tencent_cloud_secret_key,
         region=settings.tencent_cloud_region,
     )
-    return StyleService(style_engine=style_engine)
+    task_store = get_task_store()
+    return StyleService(style_engine=style_engine, task_store=task_store)
 
 
 def get_storage_service() -> LocalStorageService:
@@ -161,8 +178,18 @@ async def create_style_transfer_task(
         HTTPException: 如果文件验证失败或风格预设不存在
     """
     try:
-        upload_result = await storage_service.upload_file(file)
-        image_path = upload_result["file_path"]
+        # 读取文件内容
+        file_content = await file.read()
+
+        # 上传文件到存储服务
+        file_object = await storage_service.upload_file(
+            file_content=file_content,
+            filename=file.filename or "unknown",
+            content_type=file.content_type or "application/octet-stream",
+        )
+
+        # 使用完整的文件路径
+        image_path = str(Path(storage_service.base_path) / file_object.object_key)
 
         task = await service.create_style_task(
             image_path=image_path,
@@ -215,7 +242,7 @@ async def get_style_task(
     Raises:
         HTTPException: 如果任务不存在
     """
-    task = service.get_task_status(task_id)
+    task = await service.get_task_status(task_id)
 
     if task is None:
         raise HTTPException(
@@ -280,7 +307,7 @@ async def download_style_result(
     Raises:
         HTTPException: 如果任务不存在或未完成
     """
-    task = service.get_task_status(task_id)
+    task = await service.get_task_status(task_id)
 
     if task is None:
         raise HTTPException(

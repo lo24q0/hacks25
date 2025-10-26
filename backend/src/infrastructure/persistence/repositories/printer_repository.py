@@ -8,120 +8,121 @@ from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from domain.models.printer import Printer
-from domain.value_objects.printer_profile import PrinterProfile
-from domain.value_objects.connection_config import ConnectionConfig
-from domain.enums.print_enums import PrinterStatus
-from infrastructure.persistence.models.printer_model import PrinterModel
+from src.domain.models.printer import Printer
+from src.domain.value_objects.printer_profile import PrinterProfile
+from src.domain.value_objects.connection_config import ConnectionConfig
+from src.domain.enums.print_enums import PrinterStatus
+from src.infrastructure.persistence.models.printer_model import PrinterModel
 
 
 class PrinterRepository:
     """
     打印机仓储
-    
+
     负责Printer领域对象的持久化和查询
     """
-    
+
     def __init__(self, session: AsyncSession):
         """
         初始化仓储
-        
+
         Args:
             session: 数据库会话
         """
         self.session = session
-    
+
     async def save(self, printer: Printer) -> None:
         """
         保存打印机
-        
+
         Args:
             printer: 打印机领域对象
         """
         model = await self.session.get(PrinterModel, printer.id)
-        
+
         if model is None:
             model = self._to_model(printer)
             self.session.add(model)
         else:
             self._update_model(model, printer)
-        
+
         await self.session.flush()
-    
+
     async def find_by_id(self, printer_id: str) -> Optional[Printer]:
         """
         根据ID查询打印机
-        
+
         Args:
             printer_id: 打印机ID
-            
+
         Returns:
             Optional[Printer]: 找到的打印机,不存在则返回None
         """
         model = await self.session.get(PrinterModel, printer_id)
-        
+
         if model is None:
             return None
-        
+
         return self._to_domain(model)
-    
+
     async def find_all(self) -> List[Printer]:
         """
         查询所有打印机
-        
+
         Returns:
             List[Printer]: 打印机列表
         """
         stmt = select(PrinterModel).order_by(PrinterModel.created_at)
         result = await self.session.execute(stmt)
         models = result.scalars().all()
-        
+
         return [self._to_domain(model) for model in models]
-    
+
     async def find_available(self) -> List[Printer]:
         """
         查询可用的打印机(在线且空闲)
-        
+
         Returns:
             List[Printer]: 可用打印机列表
         """
-        stmt = select(PrinterModel).where(
-            PrinterModel.status == PrinterStatus.IDLE,
-            PrinterModel.is_enabled == True
-        ).order_by(PrinterModel.last_heartbeat.desc())
-        
+        stmt = (
+            select(PrinterModel)
+            .where(PrinterModel.status == PrinterStatus.IDLE, PrinterModel.is_enabled == True)
+            .order_by(PrinterModel.last_heartbeat.desc())
+        )
+
         result = await self.session.execute(stmt)
         models = result.scalars().all()
-        
+
         return [self._to_domain(model) for model in models]
-    
+
     async def delete(self, printer_id: str) -> bool:
         """
         删除打印机
-        
+
         Args:
             printer_id: 打印机ID
-            
+
         Returns:
             bool: 是否删除成功
         """
         model = await self.session.get(PrinterModel, printer_id)
-        
+
         if model is None:
             return False
-        
+
         await self.session.delete(model)
         await self.session.flush()
-        
+
         return True
-    
+
     def _to_model(self, printer: Printer) -> PrinterModel:
         """
         领域对象转数据库模型
-        
+
         Args:
             printer: 领域对象
-            
+
         Returns:
             PrinterModel: 数据库模型
         """
@@ -150,11 +151,11 @@ class PrinterRepository:
             created_at=printer.created_at,
             last_heartbeat=printer.last_heartbeat,
         )
-    
+
     def _update_model(self, model: PrinterModel, printer: Printer) -> None:
         """
         更新数据库模型
-        
+
         Args:
             model: 数据库模型
             printer: 领域对象
@@ -180,14 +181,14 @@ class PrinterRepository:
         model.current_task_id = printer.current_task_id
         model.is_enabled = printer.is_enabled
         model.last_heartbeat = printer.last_heartbeat
-    
+
     def _to_domain(self, model: PrinterModel) -> Printer:
         """
         数据库模型转领域对象
-        
+
         Args:
             model: 数据库模型
-            
+
         Returns:
             Printer: 领域对象
         """

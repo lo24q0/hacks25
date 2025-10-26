@@ -9,12 +9,12 @@ from sqlalchemy.ext.asyncio import (
     AsyncSession,
     AsyncEngine,
     create_async_engine,
-    async_sessionmaker
+    async_sessionmaker,
 )
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.pool import NullPool
 
-from infrastructure.config.settings import get_settings
+from src.infrastructure.config.settings import get_settings
 
 
 settings = get_settings()
@@ -26,14 +26,12 @@ Base = declarative_base()
 def get_database_url() -> str:
     """
     获取数据库连接URL
-    
+
     Returns:
         str: 数据库URL
     """
     if settings.DATABASE_URL.startswith("postgresql://"):
-        return settings.DATABASE_URL.replace(
-            "postgresql://", "postgresql+asyncpg://", 1
-        )
+        return settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
     elif settings.DATABASE_URL.startswith("sqlite:///"):
         return settings.DATABASE_URL.replace("sqlite:///", "sqlite+aiosqlite:///", 1)
     return settings.DATABASE_URL
@@ -42,12 +40,12 @@ def get_database_url() -> str:
 def create_engine() -> AsyncEngine:
     """
     创建异步数据库引擎
-    
+
     Returns:
         AsyncEngine: 数据库引擎
     """
     database_url = get_database_url()
-    
+
     if database_url.startswith("sqlite"):
         engine = create_async_engine(
             database_url,
@@ -63,7 +61,7 @@ def create_engine() -> AsyncEngine:
             pool_size=5,
             max_overflow=10,
         )
-    
+
     return engine
 
 
@@ -82,7 +80,7 @@ AsyncSessionLocal = async_sessionmaker(
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     """
     获取数据库会话(依赖注入)
-    
+
     Yields:
         AsyncSession: 数据库会话
     """

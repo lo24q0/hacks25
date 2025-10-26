@@ -4,7 +4,7 @@
 
 ## 技术栈
 
-- **Python**: 3.10-3.12
+- **Python**: 3.10-3.13
 - **框架**: FastAPI 0.115+
 - **ASGI服务器**: Uvicorn 0.30+
 - **配置管理**: Pydantic Settings
@@ -43,8 +43,13 @@ backend/
 
 ### 2. 安装依赖
 
+建议使用虚拟环境：
+
 ```bash
 cd backend
+python -m venv venv
+source venv/bin/activate  # macOS/Linux
+# 或者在 Windows 上: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 

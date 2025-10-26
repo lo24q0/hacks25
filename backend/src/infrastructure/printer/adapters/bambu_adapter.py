@@ -12,6 +12,7 @@ from typing import Optional
 try:
     import bambulabs_api as bl
     from bambulabs_api import GcodeState
+
     BAMBULABS_API_AVAILABLE = True
 except ImportError:
     BAMBULABS_API_AVAILABLE = False
@@ -45,8 +46,7 @@ class BambuAdapter(IPrinterAdapter):
     def __init__(self):
         if not BAMBULABS_API_AVAILABLE:
             logger.warning(
-                "bambulabs_api library not available. "
-                "Install it with: pip install bambulabs_api"
+                "bambulabs_api library not available. " "Install it with: pip install bambulabs_api"
             )
 
         self._printer: Optional[bl.Printer] = None
@@ -74,9 +74,7 @@ class BambuAdapter(IPrinterAdapter):
         try:
             # 创建打印机实例
             self._printer = bl.Printer(
-                ip_address=config.host,
-                access_code=config.access_code,
-                serial=config.serial_number
+                ip_address=config.host, access_code=config.access_code, serial=config.serial_number
             )
 
             # 只启动 MQTT 连接 (不启动摄像头以节省资源)
@@ -164,14 +162,12 @@ class BambuAdapter(IPrinterAdapter):
 
             # 确保文件格式正确
             if not filename.endswith(".gcode.3mf"):
-                logger.warning(
-                    f"File should have .gcode.3mf extension: {filename}"
-                )
+                logger.warning(f"File should have .gcode.3mf extension: {filename}")
                 # 理由: 拓竹打印机要求使用 .gcode.3mf 格式
                 # TODO: 集成 Task 6 的 G-code 到 3MF 转换功能
 
             # 使用 bambulabs_api 的 FTP 上传
-            with open(file_path, 'rb') as f:
+            with open(file_path, "rb") as f:
                 upload_path = self._printer.upload_file(f, filename)
                 logger.info(f"File uploaded successfully: {upload_path}")
                 return True
@@ -258,7 +254,7 @@ class BambuAdapter(IPrinterAdapter):
             result = self._printer.start_print(
                 filename=file_name,
                 plate_number=1,  # 默认第一个 plate
-                use_ams=False    # 暂不使用 AMS
+                use_ams=False,  # 暂不使用 AMS
             )
 
             if result:
@@ -363,11 +359,7 @@ class BambuAdapter(IPrinterAdapter):
         """
         if not self._printer or not self._connected:
             return PrintProgress(
-                percentage=0,
-                layer_current=0,
-                layer_total=0,
-                time_elapsed=0,
-                time_remaining=0
+                percentage=0, layer_current=0, layer_total=0, time_elapsed=0, time_remaining=0
             )
 
         try:
@@ -388,7 +380,7 @@ class BambuAdapter(IPrinterAdapter):
                 layer_current=layer_current,
                 layer_total=layer_total,
                 time_elapsed=0,  # bambulabs_api 不提供已用时间
-                time_remaining=time_remaining or 0
+                time_remaining=time_remaining or 0,
             )
 
         except Exception as e:

@@ -17,6 +17,7 @@ from src.infrastructure.ai.meshy_client import MeshyAPIError, MeshyClient
 from src.infrastructure.ai.meshy_models import GenerationConfig, MeshyTaskResponse
 from src.infrastructure.ai.text_to_3d_service import TextTo3DService
 from src.infrastructure.ai.image_to_3d_service import ImageTo3DService
+from src.infrastructure.ai.mock_model_generator import MockModelGenerator
 from src.infrastructure.config.settings import settings
 from src.infrastructure.tasks.celery_app import celery_app
 
@@ -80,9 +81,22 @@ def generate_text_to_3d(
     """
     task_id = self.request.id
     logger.info(f"Starting text-to-3d task {task_id} for model {model_id}")
+    logger.info(f"Task parameters: prompt='{prompt[:50]}...', art_style='{art_style}', target_polycount={target_polycount}, seed={seed}")
 
     try:
         async def run_generation():
+            # 检查是否启用 mock 模式
+            if settings.mock_mode:
+                logger.info(f"Using mock mode for text-to-3d generation")
+                mock_generator = MockModelGenerator()
+                return await mock_generator.generate_text_to_3d(
+                    prompt=prompt,
+                    model_id=model_id,
+                    art_style=art_style,
+                    target_polycount=target_polycount,
+                    seed=seed,
+                )
+
             config = GenerationConfig(
                 art_style=art_style,
                 target_polycount=target_polycount,
@@ -141,28 +155,28 @@ def generate_text_to_3d(
                         await download_model_file(
                             completed_preview.model_urls.glb, glb_path
                         )
-                        model_files["glb"] = str(glb_path)
+                        model_files["glb"] = f"/storage/models/{model_id}.glb"
 
                     if completed_preview.model_urls.obj:
                         obj_path = storage_dir / f"{model_id}.obj"
                         await download_model_file(
                             completed_preview.model_urls.obj, obj_path
                         )
-                        model_files["obj"] = str(obj_path)
+                        model_files["obj"] = f"/storage/models/{model_id}.obj"
 
                     if completed_preview.model_urls.fbx:
                         fbx_path = storage_dir / f"{model_id}.fbx"
                         await download_model_file(
                             completed_preview.model_urls.fbx, fbx_path
                         )
-                        model_files["fbx"] = str(fbx_path)
+                        model_files["fbx"] = f"/storage/models/{model_id}.fbx"
 
                     if completed_preview.model_urls.mtl:
                         mtl_path = storage_dir / f"{model_id}.mtl"
                         await download_model_file(
                             completed_preview.model_urls.mtl, mtl_path
                         )
-                        model_files["mtl"] = str(mtl_path)
+                        model_files["mtl"] = f"/storage/models/{model_id}.mtl"
 
                 thumbnail_path = None
                 if completed_preview.thumbnail_url:
@@ -186,7 +200,7 @@ def generate_text_to_3d(
                     "meshy_task_id": completed_preview.id,
                     "status": "completed",
                     "model_files": model_files,
-                    "thumbnail_path": str(thumbnail_path) if thumbnail_path else None,
+                    "thumbnail_path": f"/storage/thumbnails/{model_id}.png" if thumbnail_path else None,
                     "completed_at": datetime.utcnow().isoformat(),
                 }
 
@@ -249,6 +263,17 @@ def generate_image_to_3d(
 
     try:
         async def run_generation():
+            # 检查是否启用 mock 模式
+            if settings.mock_mode:
+                logger.info(f"Using mock mode for image-to-3d generation")
+                mock_generator = MockModelGenerator()
+                return await mock_generator.generate_image_to_3d(
+                    image_url=image_url,
+                    model_id=model_id,
+                    target_polycount=target_polycount,
+                    enable_pbr=enable_pbr,
+                )
+
             config = GenerationConfig(
                 target_polycount=target_polycount,
                 enable_pbr=enable_pbr,
@@ -303,28 +328,28 @@ def generate_image_to_3d(
                         await download_model_file(
                             completed_task.model_urls.glb, glb_path
                         )
-                        model_files["glb"] = str(glb_path)
+                        model_files["glb"] = f"/storage/models/{model_id}.glb"
 
                     if completed_task.model_urls.obj:
                         obj_path = storage_dir / f"{model_id}.obj"
                         await download_model_file(
                             completed_task.model_urls.obj, obj_path
                         )
-                        model_files["obj"] = str(obj_path)
+                        model_files["obj"] = f"/storage/models/{model_id}.obj"
 
                     if completed_task.model_urls.fbx:
                         fbx_path = storage_dir / f"{model_id}.fbx"
                         await download_model_file(
                             completed_task.model_urls.fbx, fbx_path
                         )
-                        model_files["fbx"] = str(fbx_path)
+                        model_files["fbx"] = f"/storage/models/{model_id}.fbx"
 
                     if completed_task.model_urls.mtl:
                         mtl_path = storage_dir / f"{model_id}.mtl"
                         await download_model_file(
                             completed_task.model_urls.mtl, mtl_path
                         )
-                        model_files["mtl"] = str(mtl_path)
+                        model_files["mtl"] = f"/storage/models/{model_id}.mtl"
 
                 thumbnail_path = None
                 if completed_task.thumbnail_url:
@@ -340,28 +365,28 @@ def generate_image_to_3d(
                         await download_model_file(
                             completed_task.texture_urls.base_color, base_color_path
                         )
-                        texture_files["base_color"] = str(base_color_path)
+                        texture_files["base_color"] = f"/storage/textures/{model_id}_base_color.png"
 
                     if completed_task.texture_urls.normal:
                         normal_path = texture_dir / f"{model_id}_normal.png"
                         await download_model_file(
                             completed_task.texture_urls.normal, normal_path
                         )
-                        texture_files["normal"] = str(normal_path)
+                        texture_files["normal"] = f"/storage/textures/{model_id}_normal.png"
 
                     if completed_task.texture_urls.metallic:
                         metallic_path = texture_dir / f"{model_id}_metallic.png"
                         await download_model_file(
                             completed_task.texture_urls.metallic, metallic_path
                         )
-                        texture_files["metallic"] = str(metallic_path)
+                        texture_files["metallic"] = f"/storage/textures/{model_id}_metallic.png"
 
                     if completed_task.texture_urls.roughness:
                         roughness_path = texture_dir / f"{model_id}_roughness.png"
                         await download_model_file(
                             completed_task.texture_urls.roughness, roughness_path
                         )
-                        texture_files["roughness"] = str(roughness_path)
+                        texture_files["roughness"] = f"/storage/textures/{model_id}_roughness.png"
 
                 self.update_state(
                     state="PROGRESS",
@@ -377,7 +402,7 @@ def generate_image_to_3d(
                     "meshy_task_id": completed_task.id,
                     "status": "completed",
                     "model_files": model_files,
-                    "thumbnail_path": str(thumbnail_path) if thumbnail_path else None,
+                    "thumbnail_path": f"/storage/thumbnails/{model_id}.png" if thumbnail_path else None,
                     "texture_files": texture_files,
                     "completed_at": datetime.utcnow().isoformat(),
                 }
