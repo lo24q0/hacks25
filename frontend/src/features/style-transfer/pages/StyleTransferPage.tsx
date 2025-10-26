@@ -192,7 +192,7 @@ export const StyleTransferPage: React.FC = () => {
             )}
 
             {/* 步骤 4: 查看结果 */}
-            {currentStep === 3 && state.uploadedImageUrl && state.currentTask?.result_path && (
+            {currentStep === 3 && state.uploadedImageUrl && state.currentTask?.id && (
               <>
                 <StylePreview
                   originalImageUrl={state.uploadedImageUrl}
