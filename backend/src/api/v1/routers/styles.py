@@ -4,7 +4,7 @@
 提供图片风格化相关的 HTTP API 端点。
 """
 
-from typing import List
+from pathlib import Path
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
@@ -19,7 +19,6 @@ from src.api.v1.schemas.style import (
     StyleTransferResponse,
 )
 from src.application.services.style_service import StyleService
-from src.domain.models.style import StyleTask
 from src.infrastructure.ai.tencent_style import TencentCloudStyleEngine
 from src.infrastructure.config.settings import settings
 from src.infrastructure.storage.local_storage import LocalStorageService
@@ -161,8 +160,18 @@ async def create_style_transfer_task(
         HTTPException: 如果文件验证失败或风格预设不存在
     """
     try:
-        upload_result = await storage_service.upload_file(file)
-        image_path = upload_result["file_path"]
+        # 读取文件内容
+        file_content = await file.read()
+
+        # 上传文件到存储服务
+        file_object = await storage_service.upload_file(
+            file_content=file_content,
+            filename=file.filename or "unknown",
+            content_type=file.content_type or "application/octet-stream",
+        )
+
+        # 使用完整的文件路径
+        image_path = str(Path(storage_service.base_path) / file_object.object_key)
 
         task = await service.create_style_task(
             image_path=image_path,
